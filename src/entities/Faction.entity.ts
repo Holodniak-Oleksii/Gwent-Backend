@@ -1,0 +1,14 @@
+import { EFaction } from "@/types/enums";
+import { IFaction } from "@/types/interfaces";
+import mongoose, { Document, Schema } from "mongoose";
+
+const FactionSchema: Schema = new Schema<IFaction>({
+  id: { type: Number, enum: Object.values(EFaction), required: true },
+  name: { type: String, required: true },
+  emblem: { type: String, required: true },
+});
+
+export const Faction = mongoose.model<IFaction & Document>(
+  "Faction",
+  FactionSchema
+);
