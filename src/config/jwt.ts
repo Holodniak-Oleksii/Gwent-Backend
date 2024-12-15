@@ -1,4 +1,18 @@
-export const jwtConfig = {
-  accessSecret: process.env.JWT_SECRET!,
-  refreshSecret: process.env.JWT_REFRESH_SECRET!,
+import { ITokenUserData } from "@/types/interfaces";
+import jwt from "jsonwebtoken";
+
+export const generateAccessToken = (user: ITokenUserData) => {
+  return jwt.sign(
+    { id: user.id, nickname: user.nickname },
+    process.env.JWT_SECRET!,
+    { expiresIn: process.env.ACCESS_TOKEN_EXPIRATION! }
+  );
+};
+
+export const generateRefreshToken = (user: ITokenUserData) => {
+  return jwt.sign(
+    { id: user.id, nickname: user.nickname },
+    process.env.JWT_SECRET!,
+    { expiresIn: process.env.REFRESH_TOKEN_EXPIRATION! }
+  );
 };

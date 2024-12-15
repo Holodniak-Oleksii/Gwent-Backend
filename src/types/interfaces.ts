@@ -13,6 +13,8 @@ export interface IUser {
   coins: number;
 }
 
+export interface ITokenUserData extends Pick<IUser, "nickname" | "id"> {}
+
 export interface IFaction {
   id: EFaction;
   name: string;
