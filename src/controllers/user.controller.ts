@@ -76,9 +76,9 @@ export const login = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const { nickname, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ nickname });
     if (!user) {
       res.status(400).json({ message: ERESPONSE_MESSAGE.INVALID_CREDENTIALS });
       return;
