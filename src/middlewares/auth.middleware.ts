@@ -19,7 +19,7 @@ const authMiddleware = (
 
     jwt.verify(token, process.env.JWT_SECRET!, (err, decoded) => {
       if (err) {
-        res.status(403).json({ message: ERESPONSE_MESSAGE.INVALID_TOKEN });
+        res.status(401).json({ message: ERESPONSE_MESSAGE.INVALID_TOKEN });
         return;
       }
       req.user = decoded as ITokenUserData;
