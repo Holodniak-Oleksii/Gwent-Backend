@@ -1,4 +1,4 @@
-import { ITokenUserData } from "@/types/interfaces";
+import { ITokenUserData } from "@/types/entities";
 import jwt from "jsonwebtoken";
 
 export const generateAccessToken = (user: ITokenUserData) => {

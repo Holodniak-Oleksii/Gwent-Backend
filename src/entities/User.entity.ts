@@ -1,6 +1,6 @@
 import { CardSchema } from "@/entities/Card.entity";
 import mongoose, { Schema } from "mongoose";
-import { IUser } from "../types/interfaces";
+import { IUser } from "../types/entities";
 
 const UserSchema: Schema = new Schema<IUser>({
   nickname: { type: String, required: true },

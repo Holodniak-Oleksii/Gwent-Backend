@@ -1,5 +1,5 @@
+import { ICard } from "@/types/entities";
 import { ECardAbilities, EFaction } from "@/types/enums";
-import { ICard } from "@/types/interfaces";
 import mongoose, { Document, Schema } from "mongoose";
 
 export const CardSchema: Schema = new Schema<ICard>({

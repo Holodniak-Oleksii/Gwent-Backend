@@ -1,5 +1,5 @@
+import { IFaction } from "@/types/entities";
 import { EFaction } from "@/types/enums";
-import { IFaction } from "@/types/interfaces";
 import mongoose, { Document, Schema } from "mongoose";
 
 const FactionSchema: Schema = new Schema<IFaction>({

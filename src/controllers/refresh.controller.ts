@@ -1,6 +1,6 @@
 import { generateAccessToken } from "@/config/jwt";
-import { ERESPONSE_MESSAGE } from "@/types/enums";
-import { ITokenUserData } from "@/types/interfaces";
+import { ITokenUserData } from "@/types/entities";
+import { EResponseMessage } from "@/types/enums";
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 
@@ -13,7 +13,7 @@ export const refreshAccessToken = async (
     const { refreshToken } = req.body;
 
     if (!refreshToken) {
-      res.status(400).json({ message: ERESPONSE_MESSAGE.TOKEN_REQUIRED });
+      res.status(400).json({ message: EResponseMessage.TOKEN_REQUIRED });
       return;
     }
 
@@ -25,7 +25,7 @@ export const refreshAccessToken = async (
         decoded: JwtPayload | string | undefined
       ) => {
         if (err) {
-          res.status(401).json({ message: ERESPONSE_MESSAGE.INVALID_TOKEN });
+          res.status(401).json({ message: EResponseMessage.INVALID_TOKEN });
           return;
         }
 
@@ -35,7 +35,7 @@ export const refreshAccessToken = async (
         });
 
         res.status(200).json({
-          message: ERESPONSE_MESSAGE.TOKEN_REFRESHED,
+          message: EResponseMessage.TOKEN_REFRESHED,
           accessToken: newAccessToken,
         });
       }

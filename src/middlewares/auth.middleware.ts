@@ -1,5 +1,5 @@
-import { ERESPONSE_MESSAGE } from "@/types/enums";
-import { ITokenUserData } from "@/types/interfaces";
+import { ITokenUserData } from "@/types/entities";
+import { EResponseMessage } from "@/types/enums";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
@@ -11,7 +11,7 @@ const authMiddleware = (
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
-      res.status(401).json({ message: ERESPONSE_MESSAGE.TOKEN_REQUIRED });
+      res.status(401).json({ message: EResponseMessage.TOKEN_REQUIRED });
       return;
     }
 
@@ -19,14 +19,14 @@ const authMiddleware = (
 
     jwt.verify(token, process.env.JWT_SECRET!, (err, decoded) => {
       if (err) {
-        res.status(401).json({ message: ERESPONSE_MESSAGE.INVALID_TOKEN });
+        res.status(401).json({ message: EResponseMessage.INVALID_TOKEN });
         return;
       }
       req.user = decoded as ITokenUserData;
       next();
     });
   } catch (error) {
-    res.status(500).json({ message: ERESPONSE_MESSAGE.SERVER_ERROR });
+    res.status(500).json({ message: EResponseMessage.SERVER_ERROR });
   }
 };
 
