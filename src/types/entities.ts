@@ -13,6 +13,13 @@ export interface IUser {
   coins: number;
 }
 
+export interface ITimeStamp {
+  _ts: {
+    ct: Date;
+    ut: Date;
+  };
+}
+
 export interface ITokenUserData extends Pick<IUser, "nickname" | "id"> {}
 
 export interface IFaction {
@@ -27,4 +34,12 @@ export interface ICard {
   ability: ECardAbilities | null;
   image: string | null;
   power: number;
+}
+
+export interface INotification {
+  id: string;
+  sender: string;
+  receiver: string;
+  status: "pending" | "accepted" | "declined";
+  createdAt: Date;
 }

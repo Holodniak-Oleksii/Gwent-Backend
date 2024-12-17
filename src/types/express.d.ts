@@ -1,4 +1,4 @@
-import { ITokenUserData } from "@/types/interfaces";
+import { ITokenUserData } from "@/types/entities";
 
 declare global {
   namespace Express {

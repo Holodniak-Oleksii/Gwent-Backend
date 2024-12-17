@@ -1,6 +1,6 @@
 import { generateAccessToken, generateRefreshToken } from "@/config/jwt";
 import { User } from "@/entities/User.entity";
-import { ERESPONSE_MESSAGE } from "@/types/enums";
+import { EResponseMessage } from "@/types/enums";
 import bcrypt from "bcryptjs";
 import { NextFunction, Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
@@ -14,24 +14,24 @@ export const register = async (
     const { email, password, nickname } = req.body;
 
     if (!email || !password || !nickname) {
-      res.status(400).json({ message: ERESPONSE_MESSAGE.IS_REQUIRED });
+      res.status(400).json({ message: EResponseMessage.IS_REQUIRED });
       return;
     }
 
     if (password.length < 6) {
-      res.status(400).json({ message: ERESPONSE_MESSAGE.PASSWORD_LENGTH });
+      res.status(400).json({ message: EResponseMessage.PASSWORD_LENGTH });
       return;
     }
 
     const existingEmail = await User.findOne({ email });
     if (existingEmail) {
-      res.status(400).json({ message: ERESPONSE_MESSAGE.EMAIL_TAKEN });
+      res.status(400).json({ message: EResponseMessage.EMAIL_TAKEN });
       return;
     }
 
     const existingNickname = await User.findOne({ nickname });
     if (existingNickname) {
-      res.status(400).json({ message: ERESPONSE_MESSAGE.NICKNAME_TAKEN });
+      res.status(400).json({ message: EResponseMessage.NICKNAME_TAKEN });
       return;
     }
 
@@ -48,7 +48,7 @@ export const register = async (
     const refreshToken = generateRefreshToken(newUser);
 
     res.status(201).json({
-      message: ERESPONSE_MESSAGE.USER_REGISTERED,
+      message: EResponseMessage.USER_REGISTERED,
       user: {
         id: newUser.id,
         email: newUser.email,
@@ -80,13 +80,13 @@ export const login = async (
 
     const user = await User.findOne({ nickname });
     if (!user) {
-      res.status(400).json({ message: ERESPONSE_MESSAGE.INVALID_CREDENTIALS });
+      res.status(400).json({ message: EResponseMessage.INVALID_CREDENTIALS });
       return;
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      res.status(400).json({ message: ERESPONSE_MESSAGE.PASS_MISS_MACH });
+      res.status(400).json({ message: EResponseMessage.PASS_MISS_MACH });
       return;
     }
 
@@ -94,7 +94,7 @@ export const login = async (
     const refreshToken = generateRefreshToken(user);
 
     res.status(200).json({
-      message: ERESPONSE_MESSAGE.USER_LOGIN,
+      message: EResponseMessage.USER_LOGIN,
       user: {
         id: user.id,
         email: user.email,
@@ -123,18 +123,19 @@ export const getProfile = async (
 ): Promise<void> => {
   try {
     if (!req.user?.id) {
-      res.status(404).json({ message: ERESPONSE_MESSAGE.USER_NOT_FOUND });
+      res.status(404).json({ message: EResponseMessage.USER_NOT_FOUND });
       return;
     }
 
     const user = await User.findOne({ nickname: req.user.nickname });
     if (!user) {
-      res.status(404).json({ message: ERESPONSE_MESSAGE.USER_NOT_FOUND });
+      res.status(404).json({ message: EResponseMessage.USER_NOT_FOUND });
       return;
     }
 
     res.status(200).json({
       user: {
+        id: user.id,
         email: user.email,
         nickname: user.nickname,
         avatar: user.avatar,
@@ -160,22 +161,50 @@ export const getUserByNickname = async (
 
     const user = await User.findOne({ nickname });
     if (!user) {
-      res.status(404).json({ message: ERESPONSE_MESSAGE.USER_NOT_FOUND });
+      res.status(404).json({ message: EResponseMessage.USER_NOT_FOUND });
       return;
     }
 
     res.status(200).json({
       user: {
-        email: user.email,
+        id: user.id,
         nickname: user.nickname,
         avatar: user.avatar,
         wins: user.wins,
         losses: user.losses,
         draws: user.draws,
-        cards: user.cards,
-        coins: user.coins,
       },
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAllPlayers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.user?.nickname) {
+      res.status(401).json({ message: EResponseMessage.INVALID_CREDENTIALS });
+      return;
+    }
+
+    const { nickname } = req.user;
+
+    const users = await User.find({ nickname: { $ne: nickname } });
+
+    const formattedUsers = users.map((user) => ({
+      id: user.id,
+      nickname: user.nickname,
+      avatar: user.avatar,
+      wins: user.wins,
+      losses: user.losses,
+      draws: user.draws,
+    }));
+
+    res.status(200).json({ players: formattedUsers });
   } catch (error) {
     next(error);
   }

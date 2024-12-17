@@ -1,5 +1,6 @@
 import connectDB from "@/config/db";
-import { initWebSocket } from "@/gateways/ws.gateway";
+import WebSocketNotificationManager from "@/gateways/notification/notification.ws.gateway";
+
 import cardRoutes from "@/routes/card.routes";
 import refreshRoutes from "@/routes/refresh.routes";
 import userRoutes from "@/routes/user.routes";
@@ -30,4 +31,4 @@ const server = app.listen(port, () => {
   console.log(`Server is listening at port ${port}`);
 });
 
-initWebSocket(server);
+new WebSocketNotificationManager(server);

@@ -1,4 +1,5 @@
 import {
+  getAllPlayers,
   getProfile,
   getUserByNickname,
   login,
@@ -12,6 +13,7 @@ const router = Router();
 router.post("/register", register);
 router.post("/login", login);
 router.get("/info/:nickname", authMiddleware, getUserByNickname);
+router.get("/all", authMiddleware, getAllPlayers);
 router.get("/profile", authMiddleware, getProfile);
 
 export default router;

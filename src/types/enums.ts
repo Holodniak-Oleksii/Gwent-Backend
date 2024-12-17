@@ -21,7 +21,7 @@ export enum ECardAbilities {
   BERSERK,
 }
 
-export enum ERESPONSE_MESSAGE {
+export enum EResponseMessage {
   IS_REQUIRED = "requiredFields",
   PASSWORD_LENGTH = "passwordLength",
   EMAIL_TAKEN = "emailTaken",
@@ -35,4 +35,12 @@ export enum ERESPONSE_MESSAGE {
   INVALID_TOKEN = "invalidToken",
   TOKEN_REFRESHED = "tokenRefreshed",
   SERVER_ERROR = "serverError",
+}
+
+export enum EOperationNotificationType {
+  SENT_DUEL = "send_duel",
+  RESPOND_DUEL = "respond_duel",
+  STORED_DUELS = "stored_duels",
+  NEW_DUEL = "new_duel",
+  DUEL_RESPONSE = "duel_response",
 }
