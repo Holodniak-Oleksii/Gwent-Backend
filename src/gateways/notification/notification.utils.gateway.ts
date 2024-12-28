@@ -1,4 +1,6 @@
+import DuelEntity from "@/entities/Duel.entity";
 import NotificationEntity from "@/entities/Notification.entity";
+import UserEntity from "@/entities/User.entity";
 import { EOperationNotificationType, EStatusNotification } from "@/types/enums";
 import { v4 as uuidv4 } from "uuid";
 import { WebSocket } from "ws";
@@ -47,7 +49,9 @@ export default class WebSocketNotificationUtils {
   }
 
   public async respondDuel(id: string, status: EStatusNotification) {
+    console.log("id :", id);
     const duel = await NotificationEntity.findOneAndUpdate({ id }, { status });
+    console.log("duel :", duel);
 
     const duelData = JSON.stringify({
       type: EOperationNotificationType.RESPOND_DUEL,
@@ -65,6 +69,28 @@ export default class WebSocketNotificationUtils {
     }
     if (duel && this.clients[duel.receiver]) {
       this.clients[duel.receiver].send(duelData);
+    }
+
+    if (
+      status === EStatusNotification.ACCEPTED &&
+      duel &&
+      this.clients[duel.sender] &&
+      this.clients[duel.receiver]
+    ) {
+      const sender = await UserEntity.findOne({ nickname: duel.sender });
+      const receiver = await UserEntity.findOne({ nickname: duel.receiver });
+
+      await DuelEntity.create({
+        id,
+        players: [sender, receiver].map((p) => ({
+          nickname: p?.nickname,
+          avatar: p?.avatar || null,
+          score: 0,
+          cards: [],
+        })),
+        arena: null,
+        createdAt: new Date(),
+      });
     }
   }
 

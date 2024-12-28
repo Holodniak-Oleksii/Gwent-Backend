@@ -1,4 +1,5 @@
 import { EOperationNotificationType } from "@/types/enums";
+import { IncomingMessage } from "http";
 import WebSocket, { Server } from "ws";
 import WebSocketNotificationUtils from "./notification.utils.gateway";
 
@@ -11,7 +12,16 @@ export default class WebSocketNotificationManager {
   private utils: WebSocketNotificationUtils = new WebSocketNotificationUtils();
 
   constructor(server: any) {
-    this.wss = new Server({ server });
+    this.wss = new Server({ noServer: true });
+
+    server.on("upgrade", (req: IncomingMessage, socket: any, head: any) => {
+      if (req.url?.startsWith("/ws/notifications")) {
+        this.wss.handleUpgrade(req, socket, head, (ws) => {
+          this.wss.emit("connection", ws, req);
+        });
+      }
+    });
+
     this.setupListeners();
   }
 

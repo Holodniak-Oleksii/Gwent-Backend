@@ -1,4 +1,5 @@
 import connectDB from "@/config/db";
+import { WebSocketGameServer } from "@/gateways/game/game.ws.gateway";
 import WebSocketNotificationManager from "@/gateways/notification/notification.ws.gateway";
 
 import cardRoutes from "@/routes/card.routes";
@@ -32,3 +33,4 @@ const server = app.listen(port, () => {
 });
 
 new WebSocketNotificationManager(server);
+new WebSocketGameServer(server);

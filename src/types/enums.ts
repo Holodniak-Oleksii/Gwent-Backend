@@ -48,3 +48,9 @@ export enum EStatusNotification {
   ACCEPTED = "accepted",
   DECLINED = "declined",
 }
+
+export enum EGameMessageType {
+  WAIT_PARTNER = "waitPartner",
+  PARTNER_LEFT = "partnerLeft",
+  GAME_START = "gameStart",
+}
