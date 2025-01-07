@@ -1,6 +1,10 @@
 import { Game } from "@/core/Game";
 import DuelEntity from "@/entities/Duel.entity";
-import { EGameMessageType } from "@/types/enums";
+import { IGamesMessageRequest } from "@/types/entities";
+import {
+  EGameRequestMessageType,
+  EGameResponseMessageType,
+} from "@/types/enums";
 import WebSocket, { WebSocketServer } from "ws";
 
 type GameConnections = {
@@ -61,27 +65,54 @@ export class WebSocketGameServer {
       this.games[gameId].player[nickname] = ws;
 
       if (!this.games[gameId].game) {
-        this.games[gameId].game = new Game(duel.players, gameId);
+        const players = duel.players.map((p) => ({ ...p, cards: [] }));
+        this.games[gameId].game = new Game(players, gameId);
       }
 
       if (Object.values(this.games[gameId].player).length !== 2) {
         ws.send(
           JSON.stringify({
-            type: EGameMessageType.WAIT_PARTNER,
+            type: EGameRequestMessageType.WAIT_PARTNER,
           })
         );
       } else {
         Object.keys(this.games[gameId].player).forEach((p) => {
           this.games[gameId].player[p].send(
             JSON.stringify({
-              type: EGameMessageType.GAME_START,
+              type: EGameRequestMessageType.GAME_START,
               data: this.games[gameId].game,
             })
           );
         });
       }
 
-      ws.on("message", (message: string) => {});
+      ws.on("message", (message: string) => {
+        const { data, type } = JSON.parse(message) as IGamesMessageRequest;
+        switch (type) {
+          case EGameResponseMessageType.UPDATE_CARDS: {
+            if (this.games[gameId].game?.players) {
+              this.games[gameId].game.players = this.games[
+                gameId
+              ].game.players.map((p) => {
+                if (p.nickname === nickname) {
+                  return { ...p, cards: data.cards };
+                }
+                return p;
+              });
+
+              this.games[gameId].game.players.forEach((p) => {
+                if (p.nickname !== nickname) {
+                  this.games[gameId].player[p.nickname].send(
+                    JSON.stringify({
+                      type: EGameRequestMessageType.PARTNER_FINISH_CARDS_UPDATE,
+                    })
+                  );
+                }
+              });
+            }
+          }
+        }
+      });
       ws.on("close", () => this.deleteClient(nickname, gameId));
     });
   }
@@ -97,7 +128,7 @@ export class WebSocketGameServer {
     remainingPlayers.forEach((p) => {
       this.games[gameId].player[p].send(
         JSON.stringify({
-          type: EGameMessageType.PARTNER_LEFT,
+          type: EGameRequestMessageType.PARTNER_LEFT,
         })
       );
     });

@@ -3,6 +3,7 @@ import { EGameErrors } from "@/core/types/enums";
 import { Arena } from "./Arena";
 
 export class Game {
+  public rate: number = 0;
   public players: Player[] = [];
   public arena: Arena | null = null;
   public id: string = "";

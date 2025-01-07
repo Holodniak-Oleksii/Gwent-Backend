@@ -51,8 +51,8 @@ export default class WebSocketNotificationManager {
       const data = JSON.parse(message);
       switch (data.type) {
         case EOperationNotificationType.NEW_DUEL: {
-          const { receiver } = data;
-          this.utils.createDuel(nickname, receiver);
+          const { receiver, rate } = data.data;
+          this.utils.createDuel(nickname, receiver, rate);
           break;
         }
         case EOperationNotificationType.RESPOND_DUEL: {

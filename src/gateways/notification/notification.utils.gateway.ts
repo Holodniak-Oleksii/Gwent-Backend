@@ -25,13 +25,14 @@ export default class WebSocketNotificationUtils {
     );
   }
 
-  public async createDuel(nickname: string, receiver: string) {
+  public async createDuel(nickname: string, receiver: string, rate: number) {
     const duel = await NotificationEntity.create({
       id: uuidv4(),
       sender: nickname,
       status: EStatusNotification.PENDING,
       createdAt: new Date(),
       receiver,
+      rate,
     });
 
     const duelData = JSON.stringify({
@@ -49,39 +50,46 @@ export default class WebSocketNotificationUtils {
   }
 
   public async respondDuel(id: string, status: EStatusNotification) {
-    console.log("id :", id);
-    const duel = await NotificationEntity.findOneAndUpdate({ id }, { status });
-    console.log("duel :", duel);
+    const notification = await NotificationEntity.findOneAndUpdate(
+      { id },
+      { status }
+    );
 
     const duelData = JSON.stringify({
       type: EOperationNotificationType.RESPOND_DUEL,
       data: {
         id,
         status,
-        sender: duel?.sender,
-        receiver: duel?.receiver,
-        createAt: duel?.createdAt,
+        rate: notification?.rate,
+        sender: notification?.sender,
+        receiver: notification?.receiver,
+        createAt: notification?.createdAt,
       },
     });
 
-    if (duel && this.clients[duel.sender]) {
-      this.clients[duel.sender].send(duelData);
+    if (notification && this.clients[notification.sender]) {
+      this.clients[notification.sender].send(duelData);
     }
-    if (duel && this.clients[duel.receiver]) {
-      this.clients[duel.receiver].send(duelData);
+    if (notification && this.clients[notification.receiver]) {
+      this.clients[notification.receiver].send(duelData);
     }
 
     if (
       status === EStatusNotification.ACCEPTED &&
-      duel &&
-      this.clients[duel.sender] &&
-      this.clients[duel.receiver]
+      notification &&
+      this.clients[notification.sender] &&
+      this.clients[notification.receiver]
     ) {
-      const sender = await UserEntity.findOne({ nickname: duel.sender });
-      const receiver = await UserEntity.findOne({ nickname: duel.receiver });
+      const sender = await UserEntity.findOne({
+        nickname: notification.sender,
+      });
+      const receiver = await UserEntity.findOne({
+        nickname: notification.receiver,
+      });
 
       await DuelEntity.create({
         id,
+        rate: notification.rate,
         players: [sender, receiver].map((p) => ({
           nickname: p?.nickname,
           avatar: p?.avatar || null,

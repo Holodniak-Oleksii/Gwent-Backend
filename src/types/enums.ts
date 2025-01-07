@@ -49,8 +49,13 @@ export enum EStatusNotification {
   DECLINED = "declined",
 }
 
-export enum EGameMessageType {
+export enum EGameRequestMessageType {
   WAIT_PARTNER = "waitPartner",
   PARTNER_LEFT = "partnerLeft",
   GAME_START = "gameStart",
+  PARTNER_FINISH_CARDS_UPDATE = "partnerFinishCardsUpdate",
+}
+
+export enum EGameResponseMessageType {
+  UPDATE_CARDS = "updateCards",
 }

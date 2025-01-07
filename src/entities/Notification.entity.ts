@@ -6,6 +6,7 @@ const NotificationSchema: Schema = new Schema({
   id: { type: String, required: true },
   sender: { type: String, required: true },
   receiver: { type: String, required: true },
+  rate: { type: Number, required: true },
   status: {
     type: String,
     enum: EStatusNotification,
