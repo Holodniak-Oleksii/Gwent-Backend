@@ -8,7 +8,4 @@ const FactionSchema: Schema = new Schema<IFaction>({
   emblem: { type: String, required: true },
 });
 
-export const Faction = mongoose.model<IFaction & Document>(
-  "Faction",
-  FactionSchema
-);
+export default mongoose.model<IFaction & Document>("Faction", FactionSchema);

@@ -13,4 +13,4 @@ export const CardSchema: Schema = new Schema<ICard>({
   power: { type: Number, required: true },
 });
 
-export const Card = mongoose.model<ICard & Document>("Card", CardSchema);
+export default mongoose.model<ICard & Document>("Card", CardSchema);

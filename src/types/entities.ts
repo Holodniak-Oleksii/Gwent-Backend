@@ -1,4 +1,9 @@
-import { ECardAbilities, EFaction } from "./enums.js";
+import {
+  ECardAbilities,
+  EFaction,
+  EGameRequestMessageType,
+  EGameResponseMessageType,
+} from "./enums.js";
 
 export interface IUser {
   nickname: string;
@@ -38,8 +43,14 @@ export interface ICard {
 
 export interface INotification {
   id: string;
+  rate: number;
   sender: string;
   receiver: string;
   status: "pending" | "accepted" | "declined";
   createdAt: Date;
+}
+
+export interface IGamesMessageRequest {
+  type: EGameResponseMessageType;
+  data: any;
 }

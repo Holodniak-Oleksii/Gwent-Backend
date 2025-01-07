@@ -1,5 +1,5 @@
 import { generateAccessToken, generateRefreshToken } from "@/config/jwt";
-import { User } from "@/entities/User.entity";
+import UserEntity from "@/entities/User.entity";
 import { EResponseMessage } from "@/types/enums";
 import bcrypt from "bcryptjs";
 import { NextFunction, Request, Response } from "express";
@@ -23,13 +23,13 @@ export const register = async (
       return;
     }
 
-    const existingEmail = await User.findOne({ email });
+    const existingEmail = await UserEntity.findOne({ email });
     if (existingEmail) {
       res.status(400).json({ message: EResponseMessage.EMAIL_TAKEN });
       return;
     }
 
-    const existingNickname = await User.findOne({ nickname });
+    const existingNickname = await UserEntity.findOne({ nickname });
     if (existingNickname) {
       res.status(400).json({ message: EResponseMessage.NICKNAME_TAKEN });
       return;
@@ -37,7 +37,7 @@ export const register = async (
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = await User.create({
+    const newUser = await UserEntity.create({
       email,
       password: hashedPassword,
       nickname,
@@ -78,7 +78,7 @@ export const login = async (
   try {
     const { nickname, password } = req.body;
 
-    const user = await User.findOne({ nickname });
+    const user = await UserEntity.findOne({ nickname });
     if (!user) {
       res.status(400).json({ message: EResponseMessage.INVALID_CREDENTIALS });
       return;
@@ -127,7 +127,7 @@ export const getProfile = async (
       return;
     }
 
-    const user = await User.findOne({ nickname: req.user.nickname });
+    const user = await UserEntity.findOne({ nickname: req.user.nickname });
     if (!user) {
       res.status(404).json({ message: EResponseMessage.USER_NOT_FOUND });
       return;
@@ -159,7 +159,7 @@ export const getUserByNickname = async (
   try {
     const { nickname } = req.params;
 
-    const user = await User.findOne({ nickname });
+    const user = await UserEntity.findOne({ nickname });
     if (!user) {
       res.status(404).json({ message: EResponseMessage.USER_NOT_FOUND });
       return;
@@ -193,7 +193,7 @@ export const getAllPlayers = async (
 
     const { nickname } = req.user;
 
-    const users = await User.find({ nickname: { $ne: nickname } });
+    const users = await UserEntity.find({ nickname: { $ne: nickname } });
 
     const formattedUsers = users.map((user) => ({
       id: user.id,

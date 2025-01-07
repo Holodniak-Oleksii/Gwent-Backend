@@ -38,9 +38,24 @@ export enum EResponseMessage {
 }
 
 export enum EOperationNotificationType {
-  SENT_DUEL = "send_duel",
+  NEW_DUEL = "new_duel",
   RESPOND_DUEL = "respond_duel",
   STORED_DUELS = "stored_duels",
-  NEW_DUEL = "new_duel",
-  DUEL_RESPONSE = "duel_response",
+}
+
+export enum EStatusNotification {
+  PENDING = "pending",
+  ACCEPTED = "accepted",
+  DECLINED = "declined",
+}
+
+export enum EGameRequestMessageType {
+  WAIT_PARTNER = "waitPartner",
+  PARTNER_LEFT = "partnerLeft",
+  GAME_START = "gameStart",
+  PARTNER_FINISH_CARDS_UPDATE = "partnerFinishCardsUpdate",
+}
+
+export enum EGameResponseMessageType {
+  UPDATE_CARDS = "updateCards",
 }

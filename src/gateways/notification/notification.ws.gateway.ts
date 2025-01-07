@@ -1,7 +1,7 @@
-import NotificationEntity from "@/entities/Notification.entity";
 import { EOperationNotificationType } from "@/types/enums";
-import { v4 as uuidv4 } from "uuid";
+import { IncomingMessage } from "http";
 import WebSocket, { Server } from "ws";
+import WebSocketNotificationUtils from "./notification.utils.gateway";
 
 interface IConnectedClients {
   [nickname: string]: WebSocket;
@@ -9,10 +9,19 @@ interface IConnectedClients {
 
 export default class WebSocketNotificationManager {
   private wss: Server;
-  private clients: IConnectedClients = {};
+  private utils: WebSocketNotificationUtils = new WebSocketNotificationUtils();
 
   constructor(server: any) {
-    this.wss = new Server({ server });
+    this.wss = new Server({ noServer: true });
+
+    server.on("upgrade", (req: IncomingMessage, socket: any, head: any) => {
+      if (req.url?.startsWith("/ws/notifications")) {
+        this.wss.handleUpgrade(req, socket, head, (ws) => {
+          this.wss.emit("connection", ws, req);
+        });
+      }
+    });
+
     this.setupListeners();
   }
 
@@ -26,71 +35,34 @@ export default class WebSocketNotificationManager {
       }
 
       console.log(`User connected: ${nickname}`);
-      this.clients[nickname] = ws;
 
-      this.sendStoredDuels(nickname, ws);
+      this.utils.clients[nickname] = ws;
+      this.utils.sendStoredDuels(nickname, ws);
 
       ws.on("message", (message: string) =>
         this.handleMessage(nickname, message)
       );
-      ws.on("close", () => this.handleDisconnect(nickname));
+      ws.on("close", () => this.utils.deleteClient(nickname));
     });
-  }
-
-  private async sendStoredDuels(nickname: string, ws: WebSocket) {
-    const notifications = await NotificationEntity.find({ receiver: nickname });
-    ws.send(
-      JSON.stringify({
-        type: EOperationNotificationType.STORED_DUELS,
-        data: notifications,
-      })
-    );
   }
 
   private async handleMessage(nickname: string, message: string) {
     try {
       const data = JSON.parse(message);
-
-      if (data.type === EOperationNotificationType.SENT_DUEL) {
-        const { receiver } = data;
-        const duel = await NotificationEntity.create({
-          id: uuidv4(),
-          sender: nickname,
-          receiver,
-        });
-
-        if (this.clients[receiver]) {
-          this.clients[receiver].send(
-            JSON.stringify({
-              type: EOperationNotificationType.NEW_DUEL,
-              data: duel,
-            })
-          );
+      switch (data.type) {
+        case EOperationNotificationType.NEW_DUEL: {
+          const { receiver, rate } = data.data;
+          this.utils.createDuel(nickname, receiver, rate);
+          break;
         }
-      } else if (data.type === EOperationNotificationType.RESPOND_DUEL) {
-        const { duelId, status } = data;
-        const duel = await NotificationEntity.findByIdAndUpdate(
-          duelId,
-          { status },
-          { new: true }
-        );
-
-        if (duel && this.clients[duel.sender]) {
-          this.clients[duel.sender].send(
-            JSON.stringify({
-              type: EOperationNotificationType.DUEL_RESPONSE,
-              data: { duelId, status },
-            })
-          );
+        case EOperationNotificationType.RESPOND_DUEL: {
+          const { id, status } = data;
+          this.utils.respondDuel(id, status);
+          break;
         }
       }
     } catch (err) {
       console.error("Error handling message:", err);
     }
-  }
-
-  private handleDisconnect(nickname: string) {
-    console.log(`User disconnected: ${nickname}`);
-    delete this.clients[nickname];
   }
 }
