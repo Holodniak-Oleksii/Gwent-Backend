@@ -1,7 +1,7 @@
 import connectDB from "@/config/db";
 import { WebSocketGameServer } from "@/gateways/game/game.ws.gateway";
 import WebSocketNotificationManager from "@/gateways/notification/notification.ws.gateway";
-
+import path from "path";
 import cardRoutes from "@/routes/card.routes";
 import refreshRoutes from "@/routes/refresh.routes";
 import userRoutes from "@/routes/user.routes";
@@ -19,6 +19,8 @@ connectDB();
 app.use(urlencoded({ extended: true }));
 app.use(json());
 app.use(cors());
+
+app.use("/assets", express.static(path.join(__dirname, "../public/images")));
 
 app.use("/api/cards", cardRoutes);
 app.use("/api/users", userRoutes);
