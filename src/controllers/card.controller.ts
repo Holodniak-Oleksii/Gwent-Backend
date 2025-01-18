@@ -1,4 +1,6 @@
 import CardEntity from "@/entities/Card.entity";
+import UserEntity from "@/entities/User.entity";
+import { EResponseMessage } from "@/types/enums";
 import { NextFunction, Request, Response } from "express";
 
 import { v4 as uuidv4 } from "uuid";
@@ -43,6 +45,31 @@ export const updateCard = async (
       new: true,
     });
     res.status(200).json(updatedCard);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getUserCards = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.user?.id) {
+      res.status(404).json({ message: EResponseMessage.USER_NOT_FOUND });
+      return;
+    }
+
+    const user = await UserEntity.findOne({ nickname: req.user.nickname });
+    if (!user) {
+      res.status(404).json({ message: EResponseMessage.USER_NOT_FOUND });
+      return;
+    }
+
+    const cards = await CardEntity.find({ id: { $in: user.cards } });
+
+    res.status(200).json({ cards });
   } catch (error) {
     next(error);
   }

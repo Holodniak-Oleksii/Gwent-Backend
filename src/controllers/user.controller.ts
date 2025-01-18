@@ -1,4 +1,5 @@
 import { generateAccessToken, generateRefreshToken } from "@/config/jwt";
+import CardEntity from "@/entities/Card.entity";
 import UserEntity from "@/entities/User.entity";
 import { EResponseMessage } from "@/types/enums";
 import bcrypt from "bcryptjs";
@@ -36,12 +37,15 @@ export const register = async (
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const cards = await CardEntity.find({ isDefault: true });
+    const ids = cards.map((card) => card.id);
 
     const newUser = await UserEntity.create({
       email,
       password: hashedPassword,
       nickname,
       id: uuidv4(),
+      cards: ids,
     });
 
     const accessToken = generateAccessToken(newUser);

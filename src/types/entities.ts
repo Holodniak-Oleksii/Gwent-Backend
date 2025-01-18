@@ -15,7 +15,7 @@ export interface IUser {
   wins: number;
   losses: number;
   draws: number;
-  cards: ICard[];
+  cards: string[];
   coins: number;
 }
 

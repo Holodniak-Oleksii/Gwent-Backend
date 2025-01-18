@@ -1,4 +1,3 @@
-import { CardSchema } from "@/entities/Card.entity";
 import mongoose, { Schema } from "mongoose";
 import { IUser } from "../types/entities";
 
@@ -11,7 +10,7 @@ const UserSchema: Schema = new Schema<IUser>({
   wins: { type: Number, required: true, default: 0 },
   losses: { type: Number, required: true, default: 0 },
   draws: { type: Number, required: true, default: 0 },
-  cards: { type: [CardSchema], required: true, default: [] },
+  cards: { type: [String], required: true, default: [] },
   coins: {
     type: Number,
     required: true,
