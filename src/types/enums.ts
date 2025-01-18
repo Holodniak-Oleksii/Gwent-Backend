@@ -77,7 +77,7 @@ export enum EGameRequestMessageType {
   WAIT_PARTNER = "waitPartner",
   PARTNER_LEFT = "partnerLeft",
   GAME_START = "gameStart",
-  PARTNER_FINISH_CARDS_UPDATE = "partnerFinishCardsUpdate",
+  PREPARATION = "preparation",
 }
 
 export enum EGameResponseMessageType {

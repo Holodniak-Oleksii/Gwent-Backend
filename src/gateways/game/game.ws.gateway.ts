@@ -66,7 +66,7 @@ export class WebSocketGameServer {
 
       if (!this.games[gameId].game) {
         const players = duel.players.map((p) => ({ ...p, cards: [] }));
-        this.games[gameId].game = new Game(players, gameId);
+        this.games[gameId].game = new Game(players, gameId, duel.rate);
       }
 
       if (Object.values(this.games[gameId].player).length !== 2) {
@@ -79,7 +79,7 @@ export class WebSocketGameServer {
         Object.keys(this.games[gameId].player).forEach((p) => {
           this.games[gameId].player[p].send(
             JSON.stringify({
-              type: EGameRequestMessageType.GAME_START,
+              type: EGameRequestMessageType.PREPARATION,
               data: this.games[gameId].game,
             })
           );
@@ -104,7 +104,7 @@ export class WebSocketGameServer {
                 if (p.nickname !== nickname) {
                   this.games[gameId].player[p.nickname].send(
                     JSON.stringify({
-                      type: EGameRequestMessageType.PARTNER_FINISH_CARDS_UPDATE,
+                      type: EGameRequestMessageType.GAME_START,
                     })
                   );
                 }

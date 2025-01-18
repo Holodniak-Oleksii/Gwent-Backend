@@ -8,11 +8,12 @@ export class Game {
   public arena: Arena | null = null;
   public id: string = "";
 
-  constructor(players: Player[], id: string) {
+  constructor(players: Player[], id: string, rate: number) {
     if (players.length !== 2) {
       throw new Error(EGameErrors.TOO_MANY_PLAYER);
     }
     this.id = id;
+    this.rate = rate;
   }
 
   public start() {
