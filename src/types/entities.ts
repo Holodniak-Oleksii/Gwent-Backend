@@ -1,8 +1,9 @@
 import {
   ECardAbilities,
   EFaction,
-  EGameRequestMessageType,
+  EForces,
   EGameResponseMessageType,
+  EType,
 } from "./enums.js";
 
 export interface IUser {
@@ -39,6 +40,9 @@ export interface ICard {
   ability: ECardAbilities | null;
   image: string | null;
   power: number;
+  forces: EForces;
+  type: EType;
+  isDefault: boolean;
 }
 
 export interface INotification {

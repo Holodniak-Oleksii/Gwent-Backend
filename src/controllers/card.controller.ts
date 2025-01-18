@@ -1,13 +1,17 @@
 import CardEntity from "@/entities/Card.entity";
 import { NextFunction, Request, Response } from "express";
 
+import { v4 as uuidv4 } from "uuid";
+
 export const createCard = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const newCard = await CardEntity.create(req.body);
+    const newCardData = { ...req.body, id: uuidv4() };
+    const newCard = await CardEntity.create(newCardData);
+
     res.status(201).json(newCard);
   } catch (error) {
     next(error);

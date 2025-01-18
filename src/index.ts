@@ -1,12 +1,12 @@
 import connectDB from "@/config/db";
 import { WebSocketGameServer } from "@/gateways/game/game.ws.gateway";
 import WebSocketNotificationManager from "@/gateways/notification/notification.ws.gateway";
-import path from "path";
 import cardRoutes from "@/routes/card.routes";
 import refreshRoutes from "@/routes/refresh.routes";
 import userRoutes from "@/routes/user.routes";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
 
 import express, { Application, json, urlencoded } from "express";
 
