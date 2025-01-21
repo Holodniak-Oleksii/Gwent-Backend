@@ -20,6 +20,39 @@ export const createCard = async (
   }
 };
 
+export const getCards = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const cards = await CardEntity.find();
+
+    res.status(200).json({ cards });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createMultipleCards = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const cardDataArray = req.body.map((data: any) => ({
+      ...data,
+      id: uuidv4(),
+    }));
+
+    const newCards = await CardEntity.create(cardDataArray);
+
+    res.status(201).json(newCards);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const deleteCard = async (
   req: Request,
   res: Response,

@@ -86,19 +86,18 @@ export default class WebSocketNotificationUtils {
       const receiver = await UserEntity.findOne({
         nickname: notification.receiver,
       });
-
-      await DuelEntity.create({
-        id,
-        rate: notification.rate,
-        players: [sender, receiver].map((p) => ({
-          nickname: p?.nickname,
-          avatar: p?.avatar || null,
-          score: 0,
-          cards: [],
-        })),
-        arena: null,
-        createdAt: new Date(),
-      });
+      if (receiver && sender) {
+        await DuelEntity.create({
+          id,
+          rate: notification.rate,
+          players: {
+            [sender.nickname]: sender,
+            [receiver.nickname]: receiver,
+          },
+          arena: null,
+          createdAt: new Date(),
+        });
+      }
     }
   }
 

@@ -1,19 +1,10 @@
 import { Game } from "@/core/Game";
 import DuelEntity from "@/entities/Duel.entity";
 import { IGamesMessageRequest } from "@/types/entities";
-import {
-  EGameRequestMessageType,
-  EGameResponseMessageType,
-} from "@/types/enums";
 import WebSocket, { WebSocketServer } from "ws";
 
 type GameConnections = {
-  [gameId: string]: {
-    game: Game | null;
-    player: {
-      [nickname: string]: WebSocket;
-    };
-  };
+  [gameId: string]: Game;
 };
 
 export class WebSocketGameServer {
@@ -53,64 +44,21 @@ export class WebSocketGameServer {
       }
 
       console.log(`Player ${nickname} connected to game ${gameId}`);
-      if (!duel.players.some((item) => item.nickname === nickname)) {
+      if (!duel.players[nickname]) {
         ws.close();
         return;
       }
 
       if (!this.games[gameId]) {
-        this.games[gameId] = { game: null, player: {} };
+        this.games[gameId] = new Game(gameId, duel.rate);
       }
 
-      this.games[gameId].player[nickname] = ws;
-
-      if (!this.games[gameId].game) {
-        const players = duel.players.map((p) => ({ ...p, cards: [] }));
-        this.games[gameId].game = new Game(players, gameId, duel.rate);
-      }
-
-      if (Object.values(this.games[gameId].player).length !== 2) {
-        ws.send(
-          JSON.stringify({
-            type: EGameRequestMessageType.WAIT_PARTNER,
-          })
-        );
-      } else {
-        Object.keys(this.games[gameId].player).forEach((p) => {
-          this.games[gameId].player[p].send(
-            JSON.stringify({
-              type: EGameRequestMessageType.PREPARATION,
-              data: this.games[gameId].game,
-            })
-          );
-        });
-      }
+      this.games[gameId].addPlayer(nickname, ws);
 
       ws.on("message", (message: string) => {
-        const { data, type } = JSON.parse(message) as IGamesMessageRequest;
-        switch (type) {
-          case EGameResponseMessageType.UPDATE_CARDS: {
-            if (this.games[gameId].game?.players) {
-              this.games[gameId].game.players = this.games[
-                gameId
-              ].game.players.map((p) => {
-                if (p.nickname === nickname) {
-                  return { ...p, cards: data.cards };
-                }
-                return p;
-              });
-
-              this.games[gameId].game.players.forEach((p) => {
-                if (p.nickname !== nickname) {
-                  this.games[gameId].player[p.nickname].send(
-                    JSON.stringify({
-                      type: EGameRequestMessageType.GAME_START,
-                    })
-                  );
-                }
-              });
-            }
-          }
+        if (this.games[gameId]) {
+          const data = JSON.parse(message) as IGamesMessageRequest;
+          this.games[gameId].actionManage(data, nickname);
         }
       });
       ws.on("close", () => this.deleteClient(nickname, gameId));
@@ -119,21 +67,9 @@ export class WebSocketGameServer {
 
   private async deleteClient(nickname: string, gameId: string) {
     if (!this.games[gameId]) return;
+    this.games[gameId].removePlayer(nickname);
 
-    delete this.games[gameId].player[nickname];
-    console.log(`Player ${nickname} disconnected from game ${gameId}.`);
-
-    const remainingPlayers = Object.keys(this.games[gameId].player);
-
-    remainingPlayers.forEach((p) => {
-      this.games[gameId].player[p].send(
-        JSON.stringify({
-          type: EGameRequestMessageType.PARTNER_LEFT,
-        })
-      );
-    });
-
-    if (!remainingPlayers.length) {
+    if (!Object.keys(this.games[gameId].players).length) {
       delete this.games[gameId];
       console.log(`Game ${gameId} closed as no players are connected.`);
     }
