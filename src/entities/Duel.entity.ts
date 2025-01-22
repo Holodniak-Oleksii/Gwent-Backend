@@ -1,12 +1,11 @@
-import { Game } from "@/core/Game";
+import { IDuel } from "@/types/entities";
 import mongoose, { Schema } from "mongoose";
 
 const DuelSchema: Schema = new Schema({
   id: { type: String, required: true },
-  players: { type: Object, require: true, default: [] },
+  players: { type: Object, require: true, default: {} },
   rate: { type: Number, require: true },
-  arena: { type: Object, require: true, default: null },
   createdAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.model<Game & Document>("Duel", DuelSchema);
+export default mongoose.model<IDuel & Document>("Duel", DuelSchema);

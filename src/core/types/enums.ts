@@ -5,5 +5,13 @@ export enum EFiledType {
 }
 
 export enum EGameErrors {
-  TOO_MANY_PLAYER = "tooManyPlayers",
+  ALIEN_PLAYER = "alienPlayers",
+}
+
+export enum EGameResponseMessageType {
+  UPDATE_CARDS = "updateCards",
+}
+
+export enum EGameMessageType {
+  GET_CARDS = "getCards",
 }

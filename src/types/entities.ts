@@ -1,10 +1,6 @@
-import {
-  ECardAbilities,
-  EFaction,
-  EForces,
-  EGameResponseMessageType,
-  EType,
-} from "./enums.js";
+import { EGameResponseMessageType } from "@/core/types/enums.js";
+import { IPlayer } from "@/core/types/index.js";
+import { ECardAbilities, EFaction, EForces, EType } from "./enums.js";
 
 export interface IUser {
   nickname: string;
@@ -57,4 +53,11 @@ export interface INotification {
 export interface IGamesMessageRequest {
   type: EGameResponseMessageType;
   data: any;
+}
+
+export interface IDuel {
+  id: string;
+  rate: number;
+  players: Record<string, Omit<IPlayer, "ws">>;
+  createdAt: Date;
 }

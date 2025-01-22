@@ -50,7 +50,7 @@ export class WebSocketGameServer {
       }
 
       if (!this.games[gameId]) {
-        this.games[gameId] = new Game(gameId, duel.rate);
+        this.games[gameId] = new Game(gameId, duel.rate, duel.players);
       }
 
       this.games[gameId].addPlayer(nickname, ws);

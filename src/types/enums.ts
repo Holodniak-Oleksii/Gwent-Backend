@@ -72,7 +72,3 @@ export enum EStatusNotification {
   ACCEPTED = "accepted",
   DECLINED = "declined",
 }
-
-export enum EGameResponseMessageType {
-  UPDATE_CARDS = "updateCards",
-}

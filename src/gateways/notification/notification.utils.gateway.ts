@@ -91,8 +91,18 @@ export default class WebSocketNotificationUtils {
           id,
           rate: notification.rate,
           players: {
-            [sender.nickname]: sender,
-            [receiver.nickname]: receiver,
+            [sender.nickname]: {
+              avatar: sender.avatar,
+              nickname: sender.nickname,
+              playingCards: [],
+              cards: [],
+            },
+            [receiver.nickname]: {
+              avatar: receiver.avatar,
+              nickname: receiver.nickname,
+              playingCards: [],
+              cards: [],
+            },
           },
           arena: null,
           createdAt: new Date(),
