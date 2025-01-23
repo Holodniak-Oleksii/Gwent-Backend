@@ -24,16 +24,18 @@ export class GameManager {
     const playerKeys = Object.keys(game.players);
     const otherPlayers = playerKeys.filter((p) => p !== nickname);
 
-    game.players[nickname].ws?.send(GAME_REQUEST_MESSAGE.PREPARATION_COMPLETED);
+    game.connection[nickname].ws.send(
+      GAME_REQUEST_MESSAGE.PREPARATION_COMPLETED
+    );
 
     otherPlayers.forEach((p) => {
-      game.players[p]?.ws?.send(GAME_REQUEST_MESSAGE.PARTNER_SET_DECK);
+      game.connection[p].ws.send(GAME_REQUEST_MESSAGE.PARTNER_SET_DECK);
     });
 
     if (playerKeys.every((p) => !!game.players[p].playingCards.length)) {
       playerKeys.forEach((p) => {
-        game.players[p].ws?.send(GAME_REQUEST_MESSAGE.GAME_START);
-        game.players[p].ws?.send(
+        game.connection[p].ws.send(GAME_REQUEST_MESSAGE.GAME_START);
+        game.connection[p].ws.send(
           JSON.stringify({
             type: EGameMessageType.GET_CARDS,
             data: {

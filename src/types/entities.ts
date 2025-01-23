@@ -58,6 +58,6 @@ export interface IGamesMessageRequest {
 export interface IDuel {
   id: string;
   rate: number;
-  players: Record<string, Omit<IPlayer, "ws">>;
+  players: Record<string, IPlayer>;
   createdAt: Date;
 }

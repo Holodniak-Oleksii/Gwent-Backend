@@ -6,6 +6,7 @@ export enum EFiledType {
 
 export enum EGameErrors {
   ALIEN_PLAYER = "alienPlayers",
+  TOO_MANY_PLAYER = "tooManyPlayers",
 }
 
 export enum EGameResponseMessageType {

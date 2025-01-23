@@ -1,6 +1,6 @@
 import { GAME_REQUEST_MESSAGE } from "@/core/common/constants";
 import { GameManager } from "@/core/GameManager";
-import { IPlayer } from "@/core/types";
+import { IConnection, IPlayer } from "@/core/types";
 import { EGameErrors, EGameMessageType } from "@/core/types/enums";
 import DuelEntity from "@/entities/Duel.entity";
 import { IGamesMessageRequest } from "@/types/entities";
@@ -10,15 +10,12 @@ import { Arena } from "./Arena";
 export class Game {
   public rate: number = 0;
   public players: Record<string, IPlayer> = {};
+  public connection: Record<string, IConnection> = {};
   public arena: Arena | null = null;
   public id: string;
   private manager = new GameManager();
 
-  constructor(
-    id: string,
-    rate: number,
-    plyers: Record<string, Omit<IPlayer, "ws">>
-  ) {
+  constructor(id: string, rate: number, plyers: Record<string, IPlayer>) {
     this.id = id;
     this.rate = rate;
     this.players = plyers;
@@ -29,18 +26,26 @@ export class Game {
       throw new Error(EGameErrors.ALIEN_PLAYER);
     }
 
-    this.players[nickname].online = true;
-    this.players[nickname].ws = ws;
+    if (Object.keys(this.connection).length > 2) {
+      throw new Error(EGameErrors.TOO_MANY_PLAYER);
+    }
+    this.connection = {
+      ...this.connection,
+      [nickname]: {
+        ws,
+        online: true,
+      },
+    };
 
-    const playersNickname = Object.keys(this.players);
-    const allReady = playersNickname.every(
-      (p) => !!this.players[p].playingCards.length
+    const connectionNickname = Object.keys(this.connection);
+    const allReady = Object.keys(this.players).every(
+      (p) => !!this.players[p].playingCards.length && this.connection[p].online
     );
 
-    playersNickname.forEach((p) => {
+    connectionNickname.forEach((p) => {
       if (allReady) {
-        this.players[p]?.ws?.send(GAME_REQUEST_MESSAGE.GAME_START);
-        this.players[p]?.ws?.send(
+        this.connection[p].ws?.send(GAME_REQUEST_MESSAGE.GAME_START);
+        this.connection[p].ws?.send(
           JSON.stringify({
             type: EGameMessageType.GET_CARDS,
             data: {
@@ -50,7 +55,7 @@ export class Game {
           })
         );
       } else {
-        this.players[p]?.ws?.send(
+        this.connection[p].ws.send(
           this.players[p].playingCards.length
             ? GAME_REQUEST_MESSAGE.WAIT_PARTNER
             : GAME_REQUEST_MESSAGE.PREPARATION
@@ -60,11 +65,11 @@ export class Game {
   }
 
   public removePlayer(nickname: string) {
-    this.players[nickname].online = false;
+    this.connection[nickname].online = false;
     console.log(`Player ${nickname} disconnected from game ${this.id}.`);
 
-    Object.keys(this.players).forEach((p) => {
-      this.players[p]?.ws?.send(GAME_REQUEST_MESSAGE.PARTNER_LEFT);
+    Object.keys(this.connection).forEach((p) => {
+      this.connection[p].ws.send(GAME_REQUEST_MESSAGE.PARTNER_LEFT);
     });
   }
 

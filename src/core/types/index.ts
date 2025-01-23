@@ -6,6 +6,9 @@ export interface IPlayer {
   avatar: string | null;
   deck: ICard[];
   playingCards: ICard[];
-  online?: boolean;
-  ws?: WebSocket;
+}
+
+export interface IConnection {
+  online: boolean;
+  ws: WebSocket;
 }
