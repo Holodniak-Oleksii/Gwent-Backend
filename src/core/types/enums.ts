@@ -14,5 +14,6 @@ export enum EGameResponseMessageType {
 }
 
 export enum EGameMessageType {
-  GET_CARDS = "getCards",
+  ENEMY = "enemy",
+  UPDATE = "update",
 }

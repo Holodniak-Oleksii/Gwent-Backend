@@ -4,6 +4,7 @@ import mongoose, { Schema } from "mongoose";
 const DuelSchema: Schema = new Schema({
   id: { type: String, required: true },
   players: { type: Object, require: true, default: {} },
+  boardCards: { type: [Object], required: true, default: [] },
   rate: { type: Number, require: true },
   createdAt: { type: Date, default: Date.now },
 });

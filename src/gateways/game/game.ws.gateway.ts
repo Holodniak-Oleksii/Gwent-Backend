@@ -50,7 +50,12 @@ export class WebSocketGameServer {
       }
 
       if (!this.games[gameId]) {
-        this.games[gameId] = new Game(gameId, duel.rate, duel.players);
+        this.games[gameId] = new Game(
+          gameId,
+          duel.rate,
+          duel.players,
+          duel.boardCards
+        );
       }
 
       this.games[gameId].addPlayer(nickname, ws);
@@ -69,7 +74,7 @@ export class WebSocketGameServer {
     if (!this.games[gameId]) return;
     this.games[gameId].removePlayer(nickname);
 
-    if (!Object.keys(this.games[gameId].players).length) {
+    if (!Object.keys(this.games[gameId].connection).length) {
       delete this.games[gameId];
       console.log(`Game ${gameId} closed as no players are connected.`);
     }

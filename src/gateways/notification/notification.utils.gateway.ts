@@ -90,6 +90,7 @@ export default class WebSocketNotificationUtils {
         await DuelEntity.create({
           id,
           rate: notification.rate,
+          boardCards: [],
           players: {
             [sender.nickname]: {
               avatar: sender.avatar,

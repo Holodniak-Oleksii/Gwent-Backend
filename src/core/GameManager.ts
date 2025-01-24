@@ -1,7 +1,7 @@
 import { Game } from "@/core/Game";
 import { GAME_REQUEST_MESSAGE } from "@/core/common/constants";
 import { getRandomElements } from "@/core/common/utils";
-import { EGameMessageType, EGameResponseMessageType } from "@/core/types/enums";
+import { EGameResponseMessageType } from "@/core/types/enums";
 import { ICard, IGamesMessageRequest } from "@/types/entities";
 
 export class GameManager {
@@ -24,26 +24,19 @@ export class GameManager {
     const playerKeys = Object.keys(game.players);
     const otherPlayers = playerKeys.filter((p) => p !== nickname);
 
-    game.connection[nickname].ws.send(
+    game.connection[nickname].ws?.send(
       GAME_REQUEST_MESSAGE.PREPARATION_COMPLETED
     );
 
     otherPlayers.forEach((p) => {
-      game.connection[p].ws.send(GAME_REQUEST_MESSAGE.PARTNER_SET_DECK);
+      game.connection[p].ws?.send(GAME_REQUEST_MESSAGE.PARTNER_SET_DECK);
     });
 
     if (playerKeys.every((p) => !!game.players[p].playingCards.length)) {
       playerKeys.forEach((p) => {
-        game.connection[p].ws.send(GAME_REQUEST_MESSAGE.GAME_START);
-        game.connection[p].ws.send(
-          JSON.stringify({
-            type: EGameMessageType.GET_CARDS,
-            data: {
-              desk: game.players[p].deck,
-              playingCards: game.players[p].playingCards,
-            },
-          })
-        );
+        game.connection[p].ws?.send(GAME_REQUEST_MESSAGE.GAME_START);
+        game.sendEnemy(p);
+        game.sendUpdate(p);
       });
     }
   }

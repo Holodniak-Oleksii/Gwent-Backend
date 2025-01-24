@@ -1,4 +1,5 @@
 import { ICard } from "@/types/entities";
+import { EForces } from "@/types/enums";
 import { WebSocket } from "ws";
 
 export interface IPlayer {
@@ -9,6 +10,12 @@ export interface IPlayer {
 }
 
 export interface IConnection {
-  online: boolean;
-  ws: WebSocket;
+  online?: boolean;
+  ws?: WebSocket;
+}
+
+export interface IBoardCard {
+  card: ICard[];
+  ownerNickname: string;
+  position: EForces;
 }

@@ -1,5 +1,5 @@
 import { EGameResponseMessageType } from "@/core/types/enums.js";
-import { IPlayer } from "@/core/types/index.js";
+import { IBoardCard, IPlayer } from "@/core/types/index.js";
 import { ECardAbilities, EFaction, EForces, EType } from "./enums.js";
 
 export interface IUser {
@@ -60,4 +60,5 @@ export interface IDuel {
   rate: number;
   players: Record<string, IPlayer>;
   createdAt: Date;
+  boardCards: IBoardCard[];
 }
