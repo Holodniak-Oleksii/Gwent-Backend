@@ -51,8 +51,8 @@ export class Game {
     connectionNickname.forEach((p) => {
       if (allReady) {
         this.connection[p].ws?.send(GAME_REQUEST_MESSAGE.GAME_START);
-        this.sendEnemy(nickname);
-        this.sendUpdate(nickname);
+        this.sendEnemy(p);
+        this.sendUpdate(p);
       } else {
         this.connection[p].ws?.send(
           this.players[p].playingCards.length
@@ -95,6 +95,21 @@ export class Game {
         },
       })
     );
+  }
+
+  public sendUpdateAll() {
+    Object.keys(this.connection).forEach((c) => {
+      this.connection[c].ws?.send(
+        JSON.stringify({
+          type: EGameMessageType.UPDATE,
+          data: {
+            desk: this.players[c].deck,
+            playingCards: this.players[c].playingCards,
+            boardCards: this.boardCards,
+          },
+        })
+      );
+    });
   }
 
   public sendEnemy(nickname: string) {

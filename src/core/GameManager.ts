@@ -5,7 +5,7 @@ import { EGameResponseMessageType } from "@/core/types/enums";
 import { ICard, IGamesMessageRequest } from "@/types/entities";
 
 export class GameManager {
-  private async setPlayerCards(game: Game, cards: ICard[], nickname: string) {
+  private async setPlayerCards(game: Game, nickname: string, cards: ICard[]) {
     game.players[nickname].deck = cards;
     const playingCards = getRandomElements(cards, 10);
     game.players[nickname].playingCards = playingCards;
@@ -41,10 +41,29 @@ export class GameManager {
     }
   }
 
+  private async applyCards(game: Game, nickname: string, card: ICard) {
+    game.players[nickname].playingCards = game.players[
+      nickname
+    ].playingCards.filter((c) => c.id !== card.id);
+
+    game.boardCards.push({
+      card,
+      ownerNickname: nickname,
+      position: card.forces,
+    });
+
+    game.sendUpdateAll();
+  }
+
   public manage(event: IGamesMessageRequest, nickname: string, game: Game) {
     switch (event.type) {
       case EGameResponseMessageType.UPDATE_CARDS: {
-        this.setPlayerCards(game, event.data.cards, nickname);
+        this.setPlayerCards(game, nickname, event.data.cards);
+        break;
+      }
+      case EGameResponseMessageType.APPLY_CARD: {
+        this.applyCards(game, nickname, event.data.card);
+        break;
       }
     }
   }

@@ -15,7 +15,7 @@ export interface IConnection {
 }
 
 export interface IBoardCard {
-  card: ICard[];
+  card: ICard;
   ownerNickname: string;
   position: EForces;
 }
