@@ -5,6 +5,10 @@ import { WebSocket } from "ws";
 export interface IPlayer {
   nickname: string;
   avatar: string | null;
+  enemy: {
+    nickname: string;
+    avatar: string | null;
+  };
   deck: ICard[];
   playingCards: ICard[];
 }

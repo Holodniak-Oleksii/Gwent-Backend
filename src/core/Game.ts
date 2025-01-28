@@ -5,27 +5,28 @@ import { EGameErrors, EGameMessageType } from "@/core/types/enums";
 import DuelEntity from "@/entities/Duel.entity";
 import { IGamesMessageRequest } from "@/types/entities";
 import { WebSocket } from "ws";
-import { Arena } from "./Arena";
 
 export class Game {
   public rate: number = 0;
   public players: Record<string, IPlayer> = {};
   public connection: Record<string, IConnection> = {};
   public boardCards: IBoardCard[] = [];
-  public arena: Arena | null = null;
   public id: string;
+  public order: string = "";
   private manager = new GameManager();
 
   constructor(
     id: string,
     rate: number,
     plyers: Record<string, IPlayer>,
-    boardCards: IBoardCard[]
+    boardCards: IBoardCard[],
+    order: string
   ) {
     this.id = id;
     this.rate = rate;
     this.players = plyers;
     this.boardCards = boardCards;
+    this.order = order;
   }
 
   public addPlayer(nickname: string, ws: WebSocket) {
@@ -50,11 +51,11 @@ export class Game {
     );
     connectionNickname.forEach((p) => {
       if (allReady) {
-        this.connection[p].ws?.send(GAME_REQUEST_MESSAGE.GAME_START);
-        this.sendEnemy(p);
+        this.sendMessage(p, GAME_REQUEST_MESSAGE.GAME_START);
         this.sendUpdate(p);
       } else {
-        this.connection[p].ws?.send(
+        this.sendMessage(
+          p,
           this.players[p].playingCards.length
             ? GAME_REQUEST_MESSAGE.WAIT_PARTNER
             : GAME_REQUEST_MESSAGE.PREPARATION
@@ -68,7 +69,7 @@ export class Game {
     console.log(`Player ${nickname} disconnected from game ${this.id}.`);
 
     Object.keys(this.connection).forEach((p) => {
-      this.connection[p].ws?.send(GAME_REQUEST_MESSAGE.PARTNER_LEFT);
+      this.sendMessage(p, GAME_REQUEST_MESSAGE.PARTNER_LEFT);
     });
   }
 
@@ -76,12 +77,37 @@ export class Game {
     await DuelEntity.findOneAndUpdate({ id: this.id }, data);
   }
 
-  public async getGame() {
-    return await DuelEntity.findOne({ id: this.id });
+  public async update() {
+    await DuelEntity.findOneAndUpdate(
+      { id: this.id },
+      {
+        players: this.players,
+        boardCards: this.boardCards,
+        order: this.order,
+      }
+    );
   }
 
-  public start() {
-    // this.arena = new Arena(this.players);
+  public sendMessage(nickname: string, data: any) {
+    if (this.connection[nickname]) {
+      if (typeof data === "string") {
+        this.connection[nickname].ws?.send(data);
+      } else {
+        this.connection[nickname].ws?.send(JSON.stringify(data));
+      }
+    }
+  }
+
+  public sendMessageEnemy(nickname: string, data: any) {
+    if (this.connection[this.players[nickname].enemy.nickname]) {
+      if (typeof data === "string") {
+        this.connection[this.players[nickname].enemy.nickname].ws?.send(data);
+      } else {
+        this.connection[this.players[nickname].enemy.nickname].ws?.send(
+          JSON.stringify(data)
+        );
+      }
+    }
   }
 
   public sendUpdate(nickname: string) {
@@ -92,6 +118,8 @@ export class Game {
           desk: this.players[nickname].deck,
           playingCards: this.players[nickname].playingCards,
           boardCards: this.boardCards,
+          order: this.order,
+          enemy: this.players[nickname].enemy,
         },
       })
     );
@@ -106,25 +134,12 @@ export class Game {
             desk: this.players[c].deck,
             playingCards: this.players[c].playingCards,
             boardCards: this.boardCards,
+            order: this.order,
+            enemy: this.players[c].enemy,
           },
         })
       );
     });
-  }
-
-  public sendEnemy(nickname: string) {
-    const enemy = Object.keys(this.players).find((e) => e !== nickname);
-    if (enemy) {
-      this.connection[nickname].ws?.send(
-        JSON.stringify({
-          type: EGameMessageType.ENEMY,
-          data: {
-            nickname: this.players[enemy].nickname,
-            avatar: this.players[enemy].avatar,
-          },
-        })
-      );
-    }
   }
 
   public actionManage(event: IGamesMessageRequest, nickname: string) {

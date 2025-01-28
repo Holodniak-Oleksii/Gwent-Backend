@@ -15,6 +15,5 @@ export enum EGameResponseMessageType {
 }
 
 export enum EGameMessageType {
-  ENEMY = "enemy",
   UPDATE = "update",
 }

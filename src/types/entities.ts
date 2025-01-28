@@ -61,4 +61,5 @@ export interface IDuel {
   players: Record<string, IPlayer>;
   createdAt: Date;
   boardCards: IBoardCard[];
+  order: string;
 }
