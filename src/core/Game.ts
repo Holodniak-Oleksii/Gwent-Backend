@@ -80,9 +80,11 @@ export class Game {
     this.connection[nickname].online = false;
     console.log(`Player ${nickname} disconnected from game ${this.id}.`);
 
-    Object.keys(this.connection).forEach((p) => {
-      this.sendMessage(p, GAME_REQUEST_MESSAGE.PARTNER_LEFT);
-    });
+    if (!this.winner) {
+      Object.keys(this.connection).forEach((p) => {
+        this.sendMessage(p, GAME_REQUEST_MESSAGE.PARTNER_LEFT);
+      });
+    }
   }
 
   public async setGame(data: any) {
