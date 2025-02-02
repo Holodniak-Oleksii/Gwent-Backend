@@ -55,7 +55,9 @@ export class WebSocketGameServer {
           duel.rate,
           duel.players,
           duel.boardCards,
-          duel.order
+          duel.order,
+          duel.rounds,
+          duel.winner
         );
       }
 

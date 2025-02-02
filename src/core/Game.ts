@@ -3,7 +3,7 @@ import { GameManager } from "@/core/GameManager";
 import { IBoardCard, IConnection, IPlayer } from "@/core/types";
 import { EGameErrors, EGameMessageType } from "@/core/types/enums";
 import DuelEntity from "@/entities/Duel.entity";
-import { IGamesMessageRequest } from "@/types/entities";
+import { IGamesMessageRequest, IRound } from "@/types/entities";
 import { WebSocket } from "ws";
 
 export class Game {
@@ -11,8 +11,10 @@ export class Game {
   public players: Record<string, IPlayer> = {};
   public connection: Record<string, IConnection> = {};
   public boardCards: IBoardCard[] = [];
+  public rounds: IRound[] = [];
   public id: string;
   public order: string = "";
+  public winner: string | null = null;
   private manager = new GameManager();
 
   constructor(
@@ -20,13 +22,17 @@ export class Game {
     rate: number,
     plyers: Record<string, IPlayer>,
     boardCards: IBoardCard[],
-    order: string
+    order: string,
+    rounds: IRound[],
+    winner: string | null
   ) {
     this.id = id;
     this.rate = rate;
     this.players = plyers;
     this.boardCards = boardCards;
+    this.rounds = rounds;
     this.order = order;
+    this.winner = winner || null;
   }
 
   public addPlayer(nickname: string, ws: WebSocket) {
@@ -37,6 +43,7 @@ export class Game {
     if (Object.keys(this.connection).length > 2) {
       throw new Error(EGameErrors.TOO_MANY_PLAYER);
     }
+
     this.connection = {
       ...this.connection,
       [nickname]: {
@@ -44,6 +51,11 @@ export class Game {
         online: true,
       },
     };
+
+    if (this.winner) {
+      this.sendMessage(nickname, GAME_REQUEST_MESSAGE.GAME_END(this.winner));
+      return;
+    }
 
     const connectionNickname = Object.keys(this.connection);
     const allReady = Object.keys(this.players).every(
@@ -84,6 +96,8 @@ export class Game {
         players: this.players,
         boardCards: this.boardCards,
         order: this.order,
+        rounds: this.rounds,
+        winner: this.winner,
       }
     );
   }
@@ -120,6 +134,7 @@ export class Game {
           boardCards: this.boardCards,
           order: this.order,
           enemy: this.players[nickname].enemy,
+          rounds: this.rounds,
         },
       })
     );
@@ -136,10 +151,77 @@ export class Game {
             boardCards: this.boardCards,
             order: this.order,
             enemy: this.players[c].enemy,
+            rounds: this.rounds,
           },
         })
       );
     });
+  }
+
+  public endRound() {
+    const roundResult: IRound = {
+      winner: "",
+      score: {},
+    };
+
+    const playerKeys = Object.keys(this.players);
+    playerKeys.forEach((name) => {
+      roundResult.score[name] = 0;
+      this.boardCards.forEach((card) => {
+        if (card.ownerNickname === name) {
+          roundResult.score[name] += card.card.power;
+        }
+      });
+    });
+
+    if (playerKeys.length === 2) {
+      const [player1, player2] = playerKeys;
+      if (roundResult.score[player1] > roundResult.score[player2]) {
+        roundResult.winner = player1;
+      } else if (roundResult.score[player1] < roundResult.score[player2]) {
+        roundResult.winner = player2;
+      } else {
+        roundResult.winner = "draw";
+      }
+    }
+
+    this.rounds.push(roundResult);
+    const winner = this.checkEndingGame();
+    if (winner) {
+      this.winner = winner;
+      this.sendUpdateAll();
+      this.update();
+      Object.keys(this.players).forEach((p) => {
+        this.sendMessage(p, GAME_REQUEST_MESSAGE.GAME_END(winner));
+      });
+    } else {
+      this.boardCards = [];
+      this.update();
+      this.sendUpdateAll();
+    }
+  }
+
+  private checkEndingGame() {
+    if (!this.rounds || this.rounds.length === 0) return null;
+
+    const winners = this.rounds.map((round) => round.winner);
+    const uniqueWinners = [...new Set(winners.filter((w) => w !== "draw"))];
+
+    for (const winner of uniqueWinners) {
+      if (winners.filter((w) => w === winner).length >= 2) {
+        return winner;
+      }
+    }
+
+    if (this.rounds.length === 2 && winners.includes("draw")) {
+      return uniqueWinners.length === 1 ? uniqueWinners[0] : "draw";
+    }
+
+    if (this.rounds.length === 3 && uniqueWinners.length === 2) {
+      return "draw";
+    }
+
+    return null;
   }
 
   public actionManage(event: IGamesMessageRequest, nickname: string) {

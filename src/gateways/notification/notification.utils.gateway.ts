@@ -92,6 +92,7 @@ export default class WebSocketNotificationUtils {
           rate: notification.rate,
           boardCards: [],
           order: "",
+          rounds: [],
           players: {
             [sender.nickname]: {
               avatar: sender.avatar,

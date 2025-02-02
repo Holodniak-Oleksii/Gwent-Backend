@@ -55,6 +55,13 @@ export interface IGamesMessageRequest {
   data: any;
 }
 
+export interface IRound {
+  winner: string;
+  score: {
+    [x: string]: number;
+  };
+}
+
 export interface IDuel {
   id: string;
   rate: number;
@@ -62,4 +69,6 @@ export interface IDuel {
   createdAt: Date;
   boardCards: IBoardCard[];
   order: string;
+  rounds: IRound[];
+  winner: string | null;
 }

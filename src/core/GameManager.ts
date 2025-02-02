@@ -18,7 +18,9 @@ export class GameManager {
 
     if (playerKeys.every((p) => !!game.players[p].playingCards.length)) {
       game.order = this.utils.tossCoin(game.players);
+
       playerKeys.forEach((p) => {
+        game.players[game.players[p].enemy.nickname].enemy.cardsCount = 10;
         game.sendMessage(p, GAME_REQUEST_MESSAGE.GAME_START);
         game.sendUpdate(p);
       });
@@ -30,11 +32,41 @@ export class GameManager {
       (c) => c.id !== card.id
     );
     game.players[nickname].playingCards = playingCards;
+    game.players[game.players[nickname].enemy.nickname].enemy.cardsCount =
+      playingCards.length;
+
     game.boardCards.push({
       card,
       ownerNickname: nickname,
       position: card.forces,
     });
+
+    if (playingCards.length) {
+      game.sendUpdateAll();
+    } else {
+      this.playerPass(game, nickname);
+    }
+  }
+
+  private playersCardsCheck(game: Game, nickname: string) {
+    if (!game.players[nickname].enemy.pass) {
+      game.order = game.players[nickname].enemy.nickname;
+    }
+  }
+
+  private playerPass(game: Game, nickname: string) {
+    game.players[nickname].pass = true;
+    game.players[game.players[nickname].enemy.nickname].enemy.pass = true;
+    if (
+      game.players[nickname].pass &&
+      game.players[game.players[nickname].enemy.nickname].pass
+    ) {
+      game.endRound();
+      Object.keys(game.players).forEach((key) => {
+        game.players[key].pass = false;
+        game.players[game.players[key].enemy.nickname].enemy.pass = false;
+      });
+    }
     game.sendUpdateAll();
   }
 
@@ -43,7 +75,7 @@ export class GameManager {
     nickname: string,
     game: Game
   ) {
-    game.order = game.players[nickname].enemy.nickname;
+    this.playersCardsCheck(game, nickname);
     switch (event.type) {
       case EGameResponseMessageType.UPDATE_CARDS: {
         this.setPlayerCards(game, nickname, event.data.cards);
@@ -51,6 +83,10 @@ export class GameManager {
       }
       case EGameResponseMessageType.APPLY_CARD: {
         this.applyCards(game, nickname, event.data.card);
+        break;
+      }
+      case EGameResponseMessageType.PLAYER_PASS: {
+        this.playerPass(game, nickname);
         break;
       }
     }

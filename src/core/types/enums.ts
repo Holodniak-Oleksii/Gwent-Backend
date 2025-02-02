@@ -12,6 +12,7 @@ export enum EGameErrors {
 export enum EGameResponseMessageType {
   UPDATE_CARDS = "updateCards",
   APPLY_CARD = "applyCard",
+  PLAYER_PASS = "playerPass",
 }
 
 export enum EGameMessageType {
