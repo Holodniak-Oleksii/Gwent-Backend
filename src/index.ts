@@ -12,13 +12,23 @@ import express, { Application, json, urlencoded } from "express";
 
 dotenv.config();
 const port = process.env.PORT || 8000;
+const devMode = process.env.MODE === "dev";
 const app: Application = express();
 
 connectDB();
 
 app.use(urlencoded({ extended: true }));
 app.use(json());
-app.use(cors());
+app.use(
+  cors({
+    origin: devMode
+      ? ["http://localhost:5173", "http://localhost:4173"]
+      : "https://gwent-frontend.vercel.app",
+    methods: "GET,POST,PUT,DELETE,OPTIONS",
+    allowedHeaders: "Content-Type,Authorization",
+    credentials: true,
+  })
+);
 
 app.use("/assets", express.static(path.join(__dirname, "../public/images")));
 
