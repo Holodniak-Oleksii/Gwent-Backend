@@ -9,6 +9,7 @@ const DuelSchema: Schema = new Schema({
   boardCards: { type: [Object], required: true, default: [] },
   rounds: { type: [Object], required: true, default: [] },
   rate: { type: Number, require: true },
+  effects: { type: [String], required: true, default: [] },
   createdAt: { type: Date, default: Date.now },
 });
 

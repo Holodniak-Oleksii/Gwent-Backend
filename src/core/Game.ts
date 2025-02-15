@@ -1,9 +1,10 @@
 import { GAME_REQUEST_MESSAGE } from "@/core/common/constants";
-import { GameManager } from "@/core/GameManager";
+import { Manager } from "@/core/Manager";
 import { IBoardCard, IConnection, IPlayer } from "@/core/types";
 import { EGameErrors, EGameMessageType } from "@/core/types/enums";
 import DuelEntity from "@/entities/Duel.entity";
 import { IGamesMessageRequest, IRound } from "@/types/entities";
+import { EForces } from "@/types/enums";
 import { WebSocket } from "ws";
 
 export class Game {
@@ -12,10 +13,11 @@ export class Game {
   public connection: Record<string, IConnection> = {};
   public boardCards: IBoardCard[] = [];
   public rounds: IRound[] = [];
+  public effects: EForces[] = [];
   public id: string;
   public order: string = "";
   public winner: string | null = null;
-  private manager = new GameManager();
+  private manager = new Manager();
 
   constructor(
     id: string,
@@ -24,7 +26,8 @@ export class Game {
     boardCards: IBoardCard[],
     order: string,
     rounds: IRound[],
-    winner: string | null
+    winner: string | null,
+    effects: EForces[]
   ) {
     this.id = id;
     this.rate = rate;
@@ -33,6 +36,7 @@ export class Game {
     this.rounds = rounds;
     this.order = order;
     this.winner = winner || null;
+    this.effects = effects || [];
   }
 
   public addPlayer(nickname: string, ws: WebSocket) {
@@ -100,6 +104,7 @@ export class Game {
         order: this.order,
         rounds: this.rounds,
         winner: this.winner,
+        effects: this.effects,
       }
     );
   }
@@ -137,6 +142,7 @@ export class Game {
           order: this.order,
           enemy: this.players[nickname].enemy,
           rounds: this.rounds,
+          effects: this.effects,
         },
       })
     );
@@ -154,6 +160,7 @@ export class Game {
             order: this.order,
             enemy: this.players[c].enemy,
             rounds: this.rounds,
+            effects: this.effects,
           },
         })
       );
@@ -161,6 +168,7 @@ export class Game {
   }
 
   public endRound() {
+    this.effects = [];
     const roundResult: IRound = {
       winner: "",
       score: {},

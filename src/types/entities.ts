@@ -71,4 +71,5 @@ export interface IDuel {
   order: string;
   rounds: IRound[];
   winner: string | null;
+  effects: EForces[];
 }

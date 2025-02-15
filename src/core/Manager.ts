@@ -1,11 +1,12 @@
+import { Ability } from "@/core/Ability";
 import { Game } from "@/core/Game";
-import { GameUtils } from "@/core/GameUtils";
+import { Utils } from "@/core/Utils";
 import { GAME_REQUEST_MESSAGE } from "@/core/common/constants";
 import { EGameResponseMessageType } from "@/core/types/enums";
 import { ICard, IGamesMessageRequest } from "@/types/entities";
 
-export class GameManager {
-  public utils: GameUtils = new GameUtils();
+export class Manager {
+  public utils: Utils = new Utils();
 
   private setPlayerCards(game: Game, nickname: string, cards: ICard[]) {
     game.players[nickname].deck = cards;
@@ -40,6 +41,13 @@ export class GameManager {
       ownerNickname: nickname,
       position: card.forces,
     });
+
+    game.boardCards = this.utils.applyEffects(game.boardCards, game.effects);
+
+    if (card.ability) {
+      const ability = new Ability(card);
+      ability.apply(game);
+    }
 
     if (playingCards.length) {
       game.sendUpdateAll();
@@ -82,7 +90,7 @@ export class GameManager {
         break;
       }
       case EGameResponseMessageType.APPLY_CARD: {
-        this.applyCards(game, nickname, event.data.card);
+        await this.applyCards(game, nickname, event.data.card);
         break;
       }
       case EGameResponseMessageType.PLAYER_PASS: {

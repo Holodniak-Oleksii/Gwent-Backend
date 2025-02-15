@@ -23,6 +23,7 @@ export interface IConnection {
 
 export interface IBoardCard {
   card: ICard;
+  oldPower?: number;
   ownerNickname: string;
   position: EForces;
 }
