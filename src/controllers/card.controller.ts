@@ -107,3 +107,40 @@ export const getUserCards = async (
     next(error);
   }
 };
+
+export const buyCard = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.user?.id) {
+      res.status(404).json({ message: EResponseMessage.USER_NOT_FOUND });
+      return;
+    }
+
+    const user = await UserEntity.findOne({ nickname: req.user.nickname });
+    if (!user) {
+      res.status(404).json({ message: EResponseMessage.USER_NOT_FOUND });
+      return;
+    }
+
+    const card = await CardEntity.findOne({ id: req.body.id });
+
+    if (!card) {
+      res.status(400).json({ message: EResponseMessage.CARD_NOT_FOUND });
+      return;
+    }
+
+    await UserEntity.findOneAndUpdate(
+      { nickname: req.user.nickname },
+      {
+        cards: [...user.cards, card.id],
+      }
+    );
+
+    res.status(200).json({ cards: [...user.cards, card.id] });
+  } catch (error) {
+    next(error);
+  }
+};

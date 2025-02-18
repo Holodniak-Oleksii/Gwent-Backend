@@ -43,6 +43,7 @@ export enum EType {
   LEADER = "LEADER",
   WEATHER = "WEATHER",
   UNIT = "UNIT",
+  SPECIAL = "SPECIAL",
 }
 
 export enum EResponseMessage {
@@ -55,6 +56,7 @@ export enum EResponseMessage {
   INVALID_CREDENTIALS = "invalidCredentials",
   PASS_MISS_MACH = "passMissMatch",
   USER_NOT_FOUND = "userNotFound",
+  CARD_NOT_FOUND = "cardNotFound",
   TOKEN_REQUIRED = "tokenRequired",
   INVALID_TOKEN = "invalidToken",
   TOKEN_REFRESHED = "tokenRefreshed",

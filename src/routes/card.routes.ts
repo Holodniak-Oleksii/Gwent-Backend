@@ -1,4 +1,5 @@
 import {
+  buyCard,
   createCard,
   createMultipleCards,
   deleteCard,
@@ -17,5 +18,6 @@ router.post("/create", createMultipleCards);
 router.delete("/:id", deleteCard);
 router.put("/:id", updateCard);
 router.get("/my", authMiddleware, getUserCards);
+router.post("/buy", authMiddleware, buyCard);
 
 export default router;

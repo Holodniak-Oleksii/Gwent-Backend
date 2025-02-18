@@ -27,9 +27,23 @@ export class Ability {
     }
   }
 
+  private applySpecialAbility(game: Game) {
+    if (this.card.ability === ECardAbilities.SCORCH) {
+      const cards = game.boardCards;
+      const maxPower = cards.reduce(
+        (max, card) => Math.max(max, card.card.power),
+        -Infinity
+      );
+      game.boardCards = cards.filter((card) => card.card.power !== maxPower);
+    }
+  }
+
   public apply(game: Game) {
     if (this.card.type === EType.WEATHER) {
       this.applyWeather(game);
+    }
+    if (this.card.type === EType.SPECIAL) {
+      this.applySpecialAbility(game);
     }
   }
 }
