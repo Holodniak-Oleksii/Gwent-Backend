@@ -3,7 +3,7 @@ import { Manager } from "@/core/Manager";
 import { IBoardCard, IConnection, IPlayer } from "@/core/types";
 import { EGameErrors, EGameMessageType } from "@/core/types/enums";
 import DuelEntity from "@/entities/Duel.entity";
-import { IGamesMessageRequest, IRound } from "@/types/entities";
+import { IEffect, IGamesMessageRequest, IRound } from "@/types/entities";
 import { EForces } from "@/types/enums";
 import { WebSocket } from "ws";
 
@@ -13,7 +13,7 @@ export class Game {
   public connection: Record<string, IConnection> = {};
   public boardCards: IBoardCard[] = [];
   public rounds: IRound[] = [];
-  public effects: EForces[] = [];
+  public effects: IEffect[] = [];
   public id: string;
   public order: string = "";
   public winner: string | null = null;
@@ -27,7 +27,7 @@ export class Game {
     order: string,
     rounds: IRound[],
     winner: string | null,
-    effects: EForces[]
+    effects: IEffect[]
   ) {
     this.id = id;
     this.rate = rate;

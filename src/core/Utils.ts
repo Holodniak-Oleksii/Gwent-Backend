@@ -1,5 +1,6 @@
 import { IBoardCard, IPlayer } from "@/core/types";
-import { EForces, EType } from "@/types/enums";
+import { IEffect } from "@/types/entities";
+import { ECardAbilities, EForces, EType } from "@/types/enums";
 
 export class Utils {
   public getRandomElements<T>(array: T[], count: number): T[] {
@@ -41,12 +42,16 @@ export class Utils {
     });
   }
 
-  public applyEffects(cards: IBoardCard[], effects: EForces[]) {
+  public applyEffects(cards: IBoardCard[], effects: IEffect[]) {
     if (effects.length) {
       let updatedCards: IBoardCard[] = cards;
 
       effects.forEach((e) => {
-        updatedCards = this.devalueCard(updatedCards, e);
+        if (e.ability === ECardAbilities.HORN) {
+        }
+        if (e.type === EType.WEATHER) {
+          updatedCards = this.devalueCard(updatedCards, e.row);
+        }
       });
 
       return updatedCards;
