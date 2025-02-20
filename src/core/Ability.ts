@@ -1,72 +1,122 @@
 import { Game } from "@/core/Game";
-import { Utils } from "@/core/Utils";
-import { ICard } from "@/types/entities";
-import { ECardAbilities, EType } from "@/types/enums";
-
-interface ICardWithAbility extends Omit<ICard, "ability"> {
-  ability: ECardAbilities;
-}
+import { IBoardCard } from "@/core/types";
+import { ICard, IEffect } from "@/types/entities";
+import { ECardAbilities, EForces, EType } from "@/types/enums";
 
 export class Ability {
-  private card: ICardWithAbility = {} as ICardWithAbility;
-  private utils: Utils = new Utils();
-  constructor(card: ICard) {
-    this.card = card as ICardWithAbility;
+  private game: Game = {} as Game;
+  private cards: IBoardCard[] = [];
+  private effects: IEffect[] = [];
+  private nickname: string = "";
+
+  constructor(game: Game, nickname: string) {
+    this.game = game;
+    this.cards = game.boardCards;
+    this.effects = game.effects;
+    this.nickname = nickname;
   }
 
-  private applyWeather(game: Game) {
-    const cards = game.boardCards;
-    if (this.card.ability !== ECardAbilities.CLEAR_WEATHER) {
-      game.effects.push({
-        ability: this.card.ability,
-        type: this.card.type,
-        applyTo: Object.keys(game.players),
-        row: this.card.forces,
-      });
-      game.boardCards = this.utils.devalueCard(cards, this.card.forces);
+  // ---------- WEATHER ---------
+
+  private devalueCard(cards: IBoardCard[], row: EForces): IBoardCard[] {
+    return cards.map((c) => {
+      const updateAble = c.card.forces === row && c.card.type !== EType.WEATHER;
+
+      return {
+        ...c,
+        ...(updateAble ? { oldPower: c.oldPower || c.card.power } : {}),
+        card: {
+          ...c.card,
+          power: updateAble ? 1 : c.card.power,
+        },
+      };
+    });
+  }
+
+  private returnCardsValues(cards: IBoardCard[]): IBoardCard[] {
+    return cards.map((c) => ({
+      ownerNickname: c.ownerNickname,
+      position: c.position,
+      card: { ...c.card, power: c.oldPower || c.card.power },
+    }));
+  }
+
+  private applyWeather(row: EForces, ability: ECardAbilities) {
+    const cards = this.cards;
+
+    if (ability !== ECardAbilities.CLEAR_WEATHER) {
+      this.cards = this.devalueCard(cards, row);
     } else {
-      if (game.effects.length) {
-        game.boardCards = this.utils.returnCardsValues(cards);
-        game.effects = [];
+      if (this.effects.length) {
+        this.cards = this.returnCardsValues(cards);
+        this.effects = [];
       }
     }
   }
 
-  private applySpecialAbility(game: Game, nickname: string) {
-    const cards = game.boardCards;
-    if (this.card.ability === ECardAbilities.SCORCH) {
-      const maxPower = cards.reduce(
-        (max, card) => Math.max(max, card.card.power),
-        -Infinity
-      );
-      game.boardCards = cards.filter((card) => card.card.power !== maxPower);
+  // ---------- SPECIAL ---------
+
+  private killBigPower() {
+    const cards = this.cards;
+    const maxPower = cards.reduce(
+      (max, card) => Math.max(max, card.card.power),
+      -Infinity
+    );
+    this.cards = cards.filter((card) => card.card.power !== maxPower);
+  }
+
+  private motivateForces(row: EForces, owners: string[]) {
+    const cards = this.cards;
+
+    this.cards = cards.map((c) => ({
+      ...c,
+      card: {
+        ...c.card,
+        power:
+          c.position === row && owners.includes(c.ownerNickname)
+            ? c.card.power * 2
+            : c.card.power,
+      },
+    }));
+  }
+
+  private applySpecialAbility(
+    row: EForces,
+    ability: ECardAbilities,
+    owners: string[]
+  ) {
+    if (ability === ECardAbilities.SCORCH) {
+      this.killBigPower();
     }
-    if (this.card.ability === ECardAbilities.HORN) {
-      game.effects.push({
-        ability: ECardAbilities.HORN,
-        type: EType.SPECIAL,
-        applyTo: [nickname],
-        row: this.card.forces,
-      });
-      game.boardCards = cards.map((c) => ({
-        ...c,
-        card: {
-          ...c.card,
-          power:
-            c.position === this.card.forces && c.ownerNickname === nickname
-              ? c.card.power * 2
-              : c.card.power,
-        },
-      }));
+    if (ability === ECardAbilities.HORN) {
+      this.motivateForces(row, owners);
     }
   }
 
-  public apply(game: Game, nickname: string) {
-    if (this.card.type === EType.WEATHER) {
-      this.applyWeather(game);
+  public addEffect(card: ICard) {
+    if (card.ability) {
+      this.effects.push({
+        ability: card.ability,
+        row: card.forces,
+        type: card.type,
+        applyTo:
+          card.type === EType.WEATHER
+            ? Object.keys(this.game.players)
+            : [this.nickname],
+      });
     }
-    if (this.card.type === EType.SPECIAL) {
-      this.applySpecialAbility(game, nickname);
-    }
+  }
+
+  public apply() {
+    this.effects.forEach((e) => {
+      if (e.type === EType.WEATHER) {
+        this.applyWeather(e.row, e.ability);
+      }
+      if (e.type === EType.SPECIAL) {
+        this.applySpecialAbility(e.row, e.ability, e.applyTo);
+      }
+    });
+
+    return { cards: this.cards, effects: this.effects };
   }
 }

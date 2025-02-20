@@ -42,10 +42,11 @@ export class Manager {
       position: card.forces,
     });
 
-    if (card.ability) {
-      const ability = new Ability(card);
-    }
-    game.boardCards = this.utils.applyEffects(game.boardCards, game.effects);
+    const ability = new Ability(game, nickname);
+    ability.addEffect(card);
+    const { cards, effects } = ability.apply();
+    game.boardCards = cards;
+    game.effects = effects;
 
     if (playingCards.length) {
       game.sendUpdateAll();
