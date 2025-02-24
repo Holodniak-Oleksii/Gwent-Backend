@@ -42,8 +42,8 @@ export class Manager {
       position: card.forces,
     });
 
-    const ability = new Ability(game, nickname);
-    ability.addEffect(card);
+    const ability = new Ability(game);
+    ability.addEffect(card, nickname);
     const { cards, effects } = ability.apply();
     game.boardCards = cards;
     game.effects = effects;

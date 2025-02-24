@@ -1,3 +1,4 @@
+import { ESpecialFiled } from "@/core/types/enums";
 import { ICard } from "@/types/entities";
 import { EForces } from "@/types/enums";
 import { WebSocket } from "ws";
@@ -23,7 +24,9 @@ export interface IConnection {
 
 export interface IBoardCard {
   card: ICard;
-  oldPower?: number;
+  [ESpecialFiled.SAVED_POWER]?: number;
+  [ESpecialFiled.IS_WEATHER]?: boolean;
+  [ESpecialFiled.IS_MOTIVATE]?: boolean;
   ownerNickname: string;
   position: EForces;
 }

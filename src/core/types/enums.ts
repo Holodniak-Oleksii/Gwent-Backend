@@ -18,3 +18,9 @@ export enum EGameResponseMessageType {
 export enum EGameMessageType {
   UPDATE = "update",
 }
+
+export enum ESpecialFiled {
+  SAVED_POWER = "savedPower",
+  IS_WEATHER = "isWeather",
+  IS_MOTIVATE = "isMotivate",
+}
