@@ -4,7 +4,6 @@ import { IBoardCard, IConnection, IPlayer } from "@/core/types";
 import { EGameErrors, EGameMessageType } from "@/core/types/enums";
 import DuelEntity from "@/entities/Duel.entity";
 import { IEffect, IGamesMessageRequest, IRound } from "@/types/entities";
-import { EForces } from "@/types/enums";
 import { WebSocket } from "ws";
 
 export class Game {
@@ -182,6 +181,17 @@ export class Game {
           roundResult.score[name] += card.card.power;
         }
       });
+
+      if (this.players[name].promisedCards) {
+        const promisedCards = this.manager.utils.getRandomElements(
+          this.players[name].deck,
+          this.players[name].promisedCards
+        );
+
+        this.players[name].playingCards =
+          this.players[name].playingCards.concat(promisedCards);
+        this.players[name].promisedCards = 0;
+      }
     });
 
     if (playerKeys.length === 2) {

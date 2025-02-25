@@ -15,6 +15,7 @@ export interface IPlayer {
   };
   deck: ICard[];
   playingCards: ICard[];
+  promisedCards: number;
 }
 
 export interface IConnection {
@@ -27,6 +28,7 @@ export interface IBoardCard {
   [ESpecialFiled.SAVED_POWER]?: number;
   [ESpecialFiled.IS_WEATHER]?: boolean;
   [ESpecialFiled.IS_MOTIVATE]?: boolean;
+  [ESpecialFiled.IS_SPY]?: boolean;
   ownerNickname: string;
   position: EForces;
 }

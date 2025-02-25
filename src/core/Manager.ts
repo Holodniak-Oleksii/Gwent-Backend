@@ -36,14 +36,16 @@ export class Manager {
     game.players[game.players[nickname].enemy.nickname].enemy.cardsCount =
       playingCards.length;
 
-    game.boardCards.push({
+    const boardCard = {
       card,
       ownerNickname: nickname,
       position: card.forces,
-    });
+    };
+
+    game.boardCards.push(boardCard);
 
     const ability = new Ability(game);
-    ability.addEffect(card, nickname);
+    ability.addEffect(boardCard, game);
     const { cards, effects } = ability.apply();
     game.boardCards = cards;
     game.effects = effects;

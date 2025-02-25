@@ -1,14 +1,30 @@
 import { Game } from "@/core/Game";
 import { IBoardCard } from "@/core/types";
-import { ICard, IEffect } from "@/types/entities";
+import { IEffect } from "@/types/entities";
 import { ECardAbilities, EForces, EType } from "@/types/enums";
 import { ESpecialFiled } from "./types/enums";
-
-const { SAVED_POWER, IS_WEATHER, IS_MOTIVATE } = ESpecialFiled;
+const {
+  CLEAR_WEATHER,
+  BITING_FROST,
+  HORN,
+  SCORCH,
+  TORRENTIAL_RAIN,
+  IMPENETRABLE_FOG,
+  SPY,
+} = ECardAbilities;
+const { SAVED_POWER, IS_WEATHER, IS_MOTIVATE, IS_SPY } = ESpecialFiled;
 export class Ability {
   private game: Game = {} as Game;
   private cards: IBoardCard[] = [];
   private effects: IEffect[] = [];
+  private allowedEffects: ECardAbilities[] = [
+    CLEAR_WEATHER,
+    BITING_FROST,
+    HORN,
+    SCORCH,
+    TORRENTIAL_RAIN,
+    IMPENETRABLE_FOG,
+  ];
 
   constructor(game: Game) {
     this.game = game;
@@ -57,7 +73,7 @@ export class Ability {
   private applyWeather(row: EForces, ability: ECardAbilities) {
     const cards = this.cards;
 
-    if (ability !== ECardAbilities.CLEAR_WEATHER) {
+    if (ability !== CLEAR_WEATHER) {
       this.cards = this.devalueCard(cards, row);
     } else {
       if (this.effects.length) {
@@ -77,13 +93,9 @@ export class Ability {
       -Infinity
     );
     this.cards = cards.filter(
-      (card) =>
-        card.card.power !== maxPower &&
-        card.card.ability !== ECardAbilities.SCORCH
+      (card) => card.card.power !== maxPower && card.card.ability !== SCORCH
     );
-    this.effects = this.effects.filter(
-      (e) => e.ability !== ECardAbilities.SCORCH
-    );
+    this.effects = this.effects.filter((e) => e.ability !== SCORCH);
   }
 
   private motivateForces(row: EForces, owners: string[]) {
@@ -109,30 +121,41 @@ export class Ability {
     });
   }
 
+  private spy(card: IBoardCard, game: Game) {
+    this.cards = this.cards.map((c) => {
+      const spyAble = c.card.id === card.card.id && !c[IS_SPY];
+
+      return {
+        ...c,
+        ...(spyAble ? { [IS_SPY]: true } : {}),
+        ownerNickname: spyAble
+          ? this.game.players[card.ownerNickname].enemy.nickname
+          : c.ownerNickname,
+      };
+    });
+
+    game.players[card.ownerNickname].promisedCards =
+      game.players[card.ownerNickname].promisedCards + 1;
+  }
+
+  // ---------- APPLIES ---------
+
   private applySpecialAbility(
     row: EForces,
     ability: ECardAbilities,
     owners: string[]
   ) {
-    if (ability === ECardAbilities.SCORCH) {
+    if (ability === SCORCH) {
       this.killBigPower();
     }
-    if (ability === ECardAbilities.HORN) {
+    if (ability === HORN) {
       this.motivateForces(row, owners);
     }
   }
 
-  public addEffect(card: ICard, nickname: string) {
-    if (card.ability) {
-      this.effects.push({
-        ability: card.ability,
-        row: card.forces,
-        type: card.type,
-        applyTo:
-          card.type === EType.WEATHER
-            ? Object.keys(this.game.players)
-            : [nickname],
-      });
+  private applyUnitAbility(card: IBoardCard, game: Game) {
+    if (card.card.ability === SPY) {
+      this.spy(card, game);
     }
   }
 
@@ -147,5 +170,21 @@ export class Ability {
     });
 
     return { cards: this.cards, effects: this.effects };
+  }
+
+  public addEffect(card: IBoardCard, game: Game) {
+    if (card.card.ability && this.allowedEffects.includes(card.card.ability)) {
+      this.effects.push({
+        ability: card.card.ability,
+        row: card.card.forces,
+        type: card.card.type,
+        applyTo:
+          card.card.type === EType.WEATHER
+            ? Object.keys(this.game.players)
+            : [card.ownerNickname],
+      });
+    } else {
+      this.applyUnitAbility(card, game);
+    }
   }
 }

@@ -23,4 +23,5 @@ export enum ESpecialFiled {
   SAVED_POWER = "savedPower",
   IS_WEATHER = "isWeather",
   IS_MOTIVATE = "isMotivate",
+  IS_SPY = "isSpy",
 }
