@@ -15,6 +15,7 @@ export interface IPlayer {
   };
   deck: ICard[];
   playingCards: ICard[];
+  discards: ICard[];
   promisedCards: number;
 }
 

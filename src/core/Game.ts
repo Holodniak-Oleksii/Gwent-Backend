@@ -137,6 +137,7 @@ export class Game {
         data: {
           desk: this.players[nickname].deck,
           playingCards: this.players[nickname].playingCards,
+          discards: this.players[nickname].discards,
           boardCards: this.boardCards,
           order: this.order,
           enemy: this.players[nickname].enemy,
@@ -155,6 +156,7 @@ export class Game {
           data: {
             desk: this.players[c].deck,
             playingCards: this.players[c].playingCards,
+            discards: this.players[c].discards,
             boardCards: this.boardCards,
             order: this.order,
             enemy: this.players[c].enemy,
@@ -215,6 +217,9 @@ export class Game {
         this.sendMessage(p, GAME_REQUEST_MESSAGE.GAME_END(winner));
       });
     } else {
+      this.boardCards.forEach((c) => {
+        this.players[c.ownerNickname]?.discards.push(c.card);
+      });
       this.boardCards = [];
       this.update();
       this.sendUpdateAll();

@@ -44,11 +44,12 @@ export class Manager {
 
     game.boardCards.push(boardCard);
 
-    const ability = new Ability(game);
-    ability.addEffect(boardCard, game);
-    const { cards, effects } = ability.apply();
+    const ability = new Ability(game, game.players);
+    ability.addEffect(boardCard);
+    const { cards, effects, players } = ability.apply();
     game.boardCards = cards;
     game.effects = effects;
+    game.players = players;
 
     if (playingCards.length) {
       game.sendUpdateAll();

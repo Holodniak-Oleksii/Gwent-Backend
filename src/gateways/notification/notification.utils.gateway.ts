@@ -100,6 +100,7 @@ export default class WebSocketNotificationUtils {
               playingCards: [],
               deck: [],
               promisedCards: 0,
+              discards: [],
               enemy: {
                 nickname: receiver.nickname,
                 avatar: receiver.avatar,
@@ -111,6 +112,7 @@ export default class WebSocketNotificationUtils {
               playingCards: [],
               deck: [],
               promisedCards: 0,
+              discards: [],
               enemy: {
                 nickname: sender.nickname,
                 avatar: sender.avatar,
