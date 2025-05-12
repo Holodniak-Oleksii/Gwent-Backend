@@ -3,6 +3,7 @@ import { Manager } from "@/core/Manager";
 import { IBoardCard, IConnection, IPlayer } from "@/core/types";
 import { EGameErrors, EGameMessageType } from "@/core/types/enums";
 import DuelEntity from "@/entities/Duel.entity";
+import UserEntity from "@/entities/User.entity";
 import { IEffect, IGamesMessageRequest, IRound } from "@/types/entities";
 import { WebSocket } from "ws";
 
@@ -168,6 +169,52 @@ export class Game {
     });
   }
 
+  private async resolveGame(winner: string) {
+    const [p1, p2] = Object.keys(this.players);
+    const [u1, u2] = await Promise.all([
+      UserEntity.findOne({ nickname: p1 }),
+      UserEntity.findOne({ nickname: p2 }),
+    ]);
+
+    if (winner === "draw") {
+      if (u1)
+        await UserEntity.findOneAndUpdate(
+          { nickname: p1 },
+          { draws: u1.draws + 1 }
+        );
+      if (u2)
+        await UserEntity.findOneAndUpdate(
+          { nickname: p2 },
+          { draws: u2.draws + 1 }
+        );
+      return;
+    }
+
+    const loser = this.players[winner].enemy.nickname;
+    const [uw, ul] = await Promise.all([
+      UserEntity.findOne({ nickname: winner }),
+      UserEntity.findOne({ nickname: loser }),
+    ]);
+
+    if (uw)
+      await UserEntity.findOneAndUpdate(
+        { nickname: winner },
+        {
+          coins: uw.coins + this.rate,
+          wins: uw.wins + 1,
+        }
+      );
+
+    if (ul)
+      await UserEntity.findOneAndUpdate(
+        { nickname: loser },
+        {
+          coins: Math.max(0, ul.coins - this.rate),
+          losses: (ul.losses || 0) + 1,
+        }
+      );
+  }
+
   public endRound() {
     this.effects = [];
     const roundResult: IRound = {
@@ -213,8 +260,10 @@ export class Game {
       this.winner = winner;
       this.sendUpdateAll();
       this.update();
-      Object.keys(this.players).forEach((p) => {
-        this.sendMessage(p, GAME_REQUEST_MESSAGE.GAME_END(winner));
+      this.resolveGame(winner).then(() => {
+        Object.keys(this.players).forEach((p) => {
+          this.sendMessage(p, GAME_REQUEST_MESSAGE.GAME_END(winner));
+        });
       });
     } else {
       this.boardCards.forEach((c) => {

@@ -13,6 +13,8 @@ export interface IUser {
   draws: number;
   cards: string[];
   coins: number;
+  createdAt: string | Date;
+  rating: number;
 }
 
 export interface ITimeStamp {

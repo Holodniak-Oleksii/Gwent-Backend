@@ -1,4 +1,5 @@
-import mongoose, { Schema } from "mongoose";
+import { calculateRating } from "@/utils";
+import mongoose, { Document, Schema } from "mongoose";
 import { IUser } from "../types/entities";
 
 const UserSchema: Schema = new Schema<IUser>({
@@ -11,11 +12,20 @@ const UserSchema: Schema = new Schema<IUser>({
   losses: { type: Number, required: true, default: 0 },
   draws: { type: Number, required: true, default: 0 },
   cards: { type: [String], required: true, default: [] },
+  createdAt: { type: Date, required: true },
+  rating: { type: Number, required: true, default: 1000 },
   coins: {
     type: Number,
     required: true,
     default: +process.env.DEFAULT_USER_SCORE!,
   },
+});
+
+UserSchema.post("findOneAndUpdate", async function (doc) {
+  if (doc) {
+    doc.rating = calculateRating(doc.wins, doc.losses, doc.draws);
+    await doc.save();
+  }
 });
 
 export default mongoose.model<IUser & Document>("User", UserSchema);

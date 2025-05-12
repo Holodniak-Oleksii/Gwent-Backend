@@ -46,6 +46,7 @@ export const register = async (
       nickname,
       id: uuidv4(),
       cards: ids,
+      createdAt: new Date(),
     });
 
     const accessToken = generateAccessToken(newUser);
@@ -63,6 +64,8 @@ export const register = async (
         draws: newUser.draws,
         cards: newUser.cards,
         coins: newUser.coins,
+        rating: newUser.rating,
+        createdAt: newUser.createdAt,
       },
       tokens: {
         accessToken,
@@ -90,7 +93,7 @@ export const login = async (
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      res.status(400).json({ message: EResponseMessage.PASS_MISS_MACH });
+      res.status(400).json({ message: EResponseMessage.PASSWORD_LENGTH });
       return;
     }
 
@@ -109,6 +112,8 @@ export const login = async (
         draws: user.draws,
         cards: user.cards,
         coins: user.coins,
+        rating: user.rating,
+        createdAt: user.createdAt,
       },
       tokens: {
         accessToken,
@@ -148,6 +153,8 @@ export const getProfile = async (
         draws: user.draws,
         cards: user.cards,
         coins: user.coins,
+        rating: user.rating,
+        createdAt: user.createdAt,
       },
     });
   } catch (error) {
@@ -177,6 +184,8 @@ export const getUserByNickname = async (
         wins: user.wins,
         losses: user.losses,
         draws: user.draws,
+        createdAt: user.createdAt,
+        rating: user.rating,
       },
     });
   } catch (error) {

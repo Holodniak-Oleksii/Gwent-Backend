@@ -55,6 +55,7 @@ export enum EResponseMessage {
   USER_LOGIN = "userLogin",
   INVALID_CREDENTIALS = "invalidCredentials",
   PASS_MISS_MACH = "passMissMatch",
+  PASS_INCORRECT = "passIncorrect",
   USER_NOT_FOUND = "userNotFound",
   CARD_NOT_FOUND = "cardNotFound",
   TOKEN_REQUIRED = "tokenRequired",
