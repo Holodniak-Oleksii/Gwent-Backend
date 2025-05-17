@@ -8,3 +8,8 @@ export const calculateRating = (
 
   return Math.round(1000 + wins * 30 - losses * 20 + draws * 10);
 };
+
+export const getCloudinaryPublicId = (url: string): string | null => {
+  const match = url.match(/\/upload\/(?:v\d+\/)?([^\.]+)/);
+  return match ? match[1] : null;
+};

@@ -20,6 +20,7 @@ export const CardSchema: Schema = new Schema<ICard>({
   ability: { type: String, enum: Object.values(ECardAbilities), default: null },
   image: { type: String, default: null },
   power: { type: Number, required: true },
+  price: { type: Number, required: true },
   isDefault: { type: Boolean, default: false },
 });
 

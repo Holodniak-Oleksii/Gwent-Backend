@@ -62,6 +62,11 @@ export enum EResponseMessage {
   INVALID_TOKEN = "invalidToken",
   TOKEN_REFRESHED = "tokenRefreshed",
   SERVER_ERROR = "serverError",
+  FILE_REQUIRED = "fileRequired",
+  FAILED_TO_UPLOAD = "filedToUpload",
+  SUCCESSFULLY_UPLOAD = "successfullyUpload",
+  NOT_ENOUGH_MONEY = "notEnoughMoney",
+  SUCCESSFULLY_PURCHASED = "successfullyPurchased",
 }
 
 export enum EOperationNotificationType {

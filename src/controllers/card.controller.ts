@@ -19,7 +19,6 @@ export const createCard = async (
     next(error);
   }
 };
-
 export const getCards = async (
   req: Request,
   res: Response,
@@ -27,6 +26,15 @@ export const getCards = async (
 ): Promise<void> => {
   try {
     const cards = await CardEntity.find();
+
+    // await Promise.all(
+    //   cards.map((c) =>
+    //     CardEntity.findByIdAndUpdate(c._id, {
+    //       ...c.toObject(),
+    //       price: 100,
+    //     })
+    //   )
+    // );
 
     res.status(200).json({ cards });
   } catch (error) {
@@ -132,14 +140,24 @@ export const buyCard = async (
       return;
     }
 
-    await UserEntity.findOneAndUpdate(
+    if (card.price >= user.coins) {
+      res.status(400).json({ message: EResponseMessage.NOT_ENOUGH_MONEY });
+      return;
+    }
+
+    const updatedUser = await UserEntity.findOneAndUpdate(
       { nickname: req.user.nickname },
       {
         cards: [...user.cards, card.id],
-      }
+        coins: user.coins - card.price,
+      },
+      { new: true }
     );
 
-    res.status(200).json({ cards: [...user.cards, card.id] });
+    res.status(200).json({
+      user: updatedUser,
+      message: EResponseMessage.SUCCESSFULLY_PURCHASED,
+    });
   } catch (error) {
     next(error);
   }

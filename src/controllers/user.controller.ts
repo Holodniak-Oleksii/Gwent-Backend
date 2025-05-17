@@ -1,7 +1,9 @@
+import cloudinary from "@/config/cloudinary";
 import { generateAccessToken, generateRefreshToken } from "@/config/jwt";
 import CardEntity from "@/entities/Card.entity";
 import UserEntity from "@/entities/User.entity";
 import { EResponseMessage } from "@/types/enums";
+import { getCloudinaryPublicId } from "@/utils";
 import bcrypt from "bcryptjs";
 import { NextFunction, Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
@@ -186,6 +188,7 @@ export const getUserByNickname = async (
         draws: user.draws,
         createdAt: user.createdAt,
         rating: user.rating,
+        coins: user.coins,
       },
     });
   } catch (error) {
@@ -212,12 +215,76 @@ export const getAllPlayers = async (
       id: user.id,
       nickname: user.nickname,
       avatar: user.avatar,
-      wins: user.wins,
-      losses: user.losses,
-      draws: user.draws,
+      rating: user.rating,
     }));
 
     res.status(200).json({ players: formattedUsers });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const uploadAvatar = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const nickname = req.user?.nickname;
+
+    if (!nickname) {
+      res.status(404).json({ message: EResponseMessage.USER_NOT_FOUND });
+      return;
+    }
+    if (!req.file) {
+      res.status(400).json({ message: EResponseMessage.FILE_REQUIRED });
+      return;
+    }
+    const user = await UserEntity.findOne({ nickname });
+
+    if (!user) {
+      res.status(404).json({ message: EResponseMessage.USER_NOT_FOUND });
+      return;
+    }
+
+    if (user.avatar) {
+      const publicId = getCloudinaryPublicId(user.avatar);
+      if (publicId) {
+        await cloudinary.uploader.destroy(publicId);
+      }
+    }
+
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: "avatars",
+        public_id: nickname,
+        overwrite: true,
+      },
+      async (error, result) => {
+        if (error || !result) {
+          res.status(500).json({ message: EResponseMessage.FAILED_TO_UPLOAD });
+          return;
+        }
+
+        const updatedUser = await UserEntity.findOneAndUpdate(
+          { nickname },
+          { avatar: result.secure_url },
+          { new: true }
+        );
+
+        if (!updatedUser) {
+          res.status(500).json({ message: EResponseMessage.FAILED_TO_UPLOAD });
+          return;
+        }
+
+        res.status(200).json({
+          message: EResponseMessage.SUCCESSFULLY_UPLOAD,
+          avatar: updatedUser.avatar,
+        });
+      }
+    );
+
+    uploadStream.end(req.file.buffer);
   } catch (error) {
     next(error);
   }

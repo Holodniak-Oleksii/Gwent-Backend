@@ -38,6 +38,7 @@ export interface ICard {
   ability: ECardAbilities | null;
   image: string | null;
   power: number;
+  price: number;
   forces: EForces;
   type: EType;
   isDefault: boolean;
