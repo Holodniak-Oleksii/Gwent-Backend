@@ -134,7 +134,7 @@ export class Ability {
 
   private spy(card: IBoardCard) {
     this.cards = this.cards.map((c) => {
-      const spyAble = c.card.id === card.card.id && !c[IS_SPY];
+      const spyAble = c.card._id === card.card._id && !c[IS_SPY];
 
       return {
         ...c,

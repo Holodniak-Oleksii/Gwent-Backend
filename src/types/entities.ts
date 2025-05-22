@@ -3,10 +3,10 @@ import { IBoardCard, IPlayer } from "@/core/types/index.js";
 import { ECardAbilities, EFaction, EForces, EType } from "./enums.js";
 
 export interface IUser {
+  _id: string;
   nickname: string;
   email: string;
   password: string;
-  id: string;
   avatar: string | null;
   wins: number;
   losses: number;
@@ -24,7 +24,7 @@ export interface ITimeStamp {
   };
 }
 
-export interface ITokenUserData extends Pick<IUser, "nickname" | "id"> {}
+export interface ITokenUserData extends Pick<IUser, "nickname" | "_id"> {}
 
 export interface IFaction {
   id: EFaction;
@@ -33,7 +33,7 @@ export interface IFaction {
 }
 
 export interface ICard {
-  id: string;
+  _id: string;
   fractionId: EFaction;
   ability: ECardAbilities | null;
   image: string | null;
@@ -45,7 +45,7 @@ export interface ICard {
 }
 
 export interface INotification {
-  id: string;
+  _id: string;
   rate: number;
   sender: string;
   receiver: string;
@@ -73,7 +73,7 @@ export interface IEffect {
 }
 
 export interface IDuel {
-  id: string;
+  _id: string;
   rate: number;
   players: Record<string, IPlayer>;
   createdAt: Date;

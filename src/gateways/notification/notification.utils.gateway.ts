@@ -2,7 +2,6 @@ import DuelEntity from "@/entities/Duel.entity";
 import NotificationEntity from "@/entities/Notification.entity";
 import UserEntity from "@/entities/User.entity";
 import { EOperationNotificationType, EStatusNotification } from "@/types/enums";
-import { v4 as uuidv4 } from "uuid";
 import { WebSocket } from "ws";
 
 interface IConnectedClients {
@@ -27,7 +26,6 @@ export default class WebSocketNotificationUtils {
 
   public async createDuel(nickname: string, receiver: string, rate: number) {
     const duel = await NotificationEntity.create({
-      id: uuidv4(),
       sender: nickname,
       status: EStatusNotification.PENDING,
       createdAt: new Date(),
@@ -49,16 +47,15 @@ export default class WebSocketNotificationUtils {
     }
   }
 
-  public async respondDuel(id: string, status: EStatusNotification) {
-    const notification = await NotificationEntity.findOneAndUpdate(
-      { id },
-      { status }
-    );
+  public async respondDuel(_id: string, status: EStatusNotification) {
+    const notification = await NotificationEntity.findByIdAndUpdate(_id, {
+      status,
+    });
 
     const duelData = JSON.stringify({
       type: EOperationNotificationType.RESPOND_DUEL,
       data: {
-        id,
+        _id,
         status,
         rate: notification?.rate,
         sender: notification?.sender,
@@ -88,7 +85,7 @@ export default class WebSocketNotificationUtils {
       });
       if (receiver && sender) {
         await DuelEntity.create({
-          id,
+          _id,
           rate: notification.rate,
           boardCards: [],
           order: "",

@@ -36,7 +36,7 @@ export class WebSocketGameServer {
         ws.close();
         return;
       }
-      const duel = await DuelEntity.findOne({ id: gameId });
+      const duel = await DuelEntity.findById(gameId);
 
       if (!duel) {
         ws.close();

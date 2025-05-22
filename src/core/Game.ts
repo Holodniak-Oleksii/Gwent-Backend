@@ -14,13 +14,13 @@ export class Game {
   public boardCards: IBoardCard[] = [];
   public rounds: IRound[] = [];
   public effects: IEffect[] = [];
-  public id: string;
+  public _id: string;
   public order: string = "";
   public winner: string | null = null;
   private manager = new Manager();
 
   constructor(
-    id: string,
+    _id: string,
     rate: number,
     plyers: Record<string, IPlayer>,
     boardCards: IBoardCard[],
@@ -29,7 +29,7 @@ export class Game {
     winner: string | null,
     effects: IEffect[]
   ) {
-    this.id = id;
+    this._id = _id;
     this.rate = rate;
     this.players = plyers;
     this.boardCards = boardCards;
@@ -82,7 +82,7 @@ export class Game {
 
   public removePlayer(nickname: string) {
     this.connection[nickname].online = false;
-    console.log(`Player ${nickname} disconnected from game ${this.id}.`);
+    console.log(`Player ${nickname} disconnected from game ${this._id}.`);
 
     if (!this.winner) {
       Object.keys(this.connection).forEach((p) => {
@@ -92,21 +92,18 @@ export class Game {
   }
 
   public async setGame(data: any) {
-    await DuelEntity.findOneAndUpdate({ id: this.id }, data);
+    await DuelEntity.findByIdAndUpdate(this._id, data);
   }
 
   public async update() {
-    await DuelEntity.findOneAndUpdate(
-      { id: this.id },
-      {
-        players: this.players,
-        boardCards: this.boardCards,
-        order: this.order,
-        rounds: this.rounds,
-        winner: this.winner,
-        effects: this.effects,
-      }
-    );
+    await DuelEntity.findByIdAndUpdate(this._id, {
+      players: this.players,
+      boardCards: this.boardCards,
+      order: this.order,
+      rounds: this.rounds,
+      winner: this.winner,
+      effects: this.effects,
+    });
   }
 
   public sendMessage(nickname: string, data: any) {

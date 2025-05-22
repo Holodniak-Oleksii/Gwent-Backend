@@ -3,7 +3,9 @@ export enum EFaction {
   NILFGAARD = "NILFGAARD",
   SCOIATAEL = "SCOIATAEL",
   MONSTERS = "MONSTERS",
-  UNIVERSAL = "UNIVERSAL",
+  NEUTRAL = "NEUTRAL",
+  SPECIAL = "SPECIAL",
+  WEATHER = "WEATHER",
 }
 
 export enum EForces {

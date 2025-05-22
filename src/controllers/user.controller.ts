@@ -6,7 +6,6 @@ import { EResponseMessage } from "@/types/enums";
 import { getCloudinaryPublicId } from "@/utils";
 import bcrypt from "bcryptjs";
 import { NextFunction, Request, Response } from "express";
-import { v4 as uuidv4 } from "uuid";
 
 export const register = async (
   req: Request,
@@ -40,13 +39,12 @@ export const register = async (
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const cards = await CardEntity.find({ isDefault: true });
-    const ids = cards.map((card) => card.id);
+    const ids = cards.map((card) => card._id);
 
     const newUser = await UserEntity.create({
       email,
       password: hashedPassword,
       nickname,
-      id: uuidv4(),
       cards: ids,
       createdAt: new Date(),
     });
@@ -57,7 +55,7 @@ export const register = async (
     res.status(201).json({
       message: EResponseMessage.USER_REGISTERED,
       user: {
-        id: newUser.id,
+        _id: newUser._id,
         email: newUser.email,
         nickname: newUser.nickname,
         avatar: newUser.avatar,
@@ -105,7 +103,7 @@ export const login = async (
     res.status(200).json({
       message: EResponseMessage.USER_LOGIN,
       user: {
-        id: user.id,
+        _id: user._id,
         email: user.email,
         nickname: user.nickname,
         avatar: user.avatar,
@@ -133,7 +131,7 @@ export const getProfile = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    if (!req.user?.id) {
+    if (!req.user?._id) {
       res.status(404).json({ message: EResponseMessage.USER_NOT_FOUND });
       return;
     }
@@ -146,7 +144,7 @@ export const getProfile = async (
 
     res.status(200).json({
       user: {
-        id: user.id,
+        _id: user._id,
         email: user.email,
         nickname: user.nickname,
         avatar: user.avatar,
@@ -180,7 +178,7 @@ export const getUserByNickname = async (
 
     res.status(200).json({
       user: {
-        id: user.id,
+        _id: user._id,
         nickname: user.nickname,
         avatar: user.avatar,
         wins: user.wins,
@@ -212,7 +210,7 @@ export const getAllPlayers = async (
     const users = await UserEntity.find({ nickname: { $ne: nickname } });
 
     const formattedUsers = users.map((user) => ({
-      id: user.id,
+      _id: user._id,
       nickname: user.nickname,
       avatar: user.avatar,
       rating: user.rating,

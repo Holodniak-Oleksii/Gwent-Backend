@@ -30,7 +30,7 @@ export class Manager {
 
   private applyCards(game: Game, nickname: string, card: ICard) {
     const playingCards = game.players[nickname].playingCards.filter(
-      (c) => c.id !== card.id
+      (c) => c._id !== card._id
     );
     game.players[nickname].playingCards = playingCards;
     game.players[game.players[nickname].enemy.nickname].enemy.cardsCount =

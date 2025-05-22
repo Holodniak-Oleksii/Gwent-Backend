@@ -3,16 +3,13 @@ import UserEntity from "@/entities/User.entity";
 import { EResponseMessage } from "@/types/enums";
 import { NextFunction, Request, Response } from "express";
 
-import { v4 as uuidv4 } from "uuid";
-
 export const createCard = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const newCardData = { ...req.body, id: uuidv4() };
-    const newCard = await CardEntity.create(newCardData);
+    const newCard = await CardEntity.create(req.body);
 
     res.status(201).json(newCard);
   } catch (error) {
@@ -48,10 +45,7 @@ export const createMultipleCards = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const cardDataArray = req.body.map((data: any) => ({
-      ...data,
-      id: uuidv4(),
-    }));
+    const cardDataArray = req.body.map((data: any) => data);
 
     const newCards = await CardEntity.create(cardDataArray);
 
@@ -97,7 +91,7 @@ export const getUserCards = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    if (!req.user?.id) {
+    if (!req.user?._id) {
       res.status(404).json({ message: EResponseMessage.USER_NOT_FOUND });
       return;
     }
@@ -108,7 +102,7 @@ export const getUserCards = async (
       return;
     }
 
-    const cards = await CardEntity.find({ id: { $in: user.cards } });
+    const cards = await CardEntity.find({ _id: { $in: user.cards } });
 
     res.status(200).json({ cards });
   } catch (error) {
@@ -122,7 +116,7 @@ export const buyCard = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    if (!req.user?.id) {
+    if (!req.user?._id) {
       res.status(404).json({ message: EResponseMessage.USER_NOT_FOUND });
       return;
     }
@@ -133,7 +127,7 @@ export const buyCard = async (
       return;
     }
 
-    const card = await CardEntity.findOne({ id: req.body.id });
+    const card = await CardEntity.findById(req.body.id);
 
     if (!card) {
       res.status(400).json({ message: EResponseMessage.CARD_NOT_FOUND });
@@ -148,7 +142,7 @@ export const buyCard = async (
     const updatedUser = await UserEntity.findOneAndUpdate(
       { nickname: req.user.nickname },
       {
-        cards: [...user.cards, card.id],
+        cards: [...user.cards, card._id],
         coins: user.coins - card.price,
       },
       { new: true }

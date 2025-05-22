@@ -2,7 +2,6 @@ import { IDuel } from "@/types/entities";
 import mongoose, { Schema } from "mongoose";
 
 const DuelSchema: Schema = new Schema({
-  id: { type: String, required: true },
   order: { type: String, default: "" },
   winner: { type: String, default: null },
   players: { type: Object, require: true, default: {} },

@@ -56,8 +56,8 @@ export default class WebSocketNotificationManager {
           break;
         }
         case EOperationNotificationType.RESPOND_DUEL: {
-          const { id, status } = data;
-          this.utils.respondDuel(id, status);
+          const { _id, status } = data;
+          this.utils.respondDuel(_id, status);
           break;
         }
       }

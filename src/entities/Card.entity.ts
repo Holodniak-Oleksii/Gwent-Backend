@@ -3,7 +3,6 @@ import { ECardAbilities, EFaction, EForces, EType } from "@/types/enums";
 import mongoose, { Document, Schema } from "mongoose";
 
 export const CardSchema: Schema = new Schema<ICard>({
-  id: { type: String, required: true },
   fractionId: {
     type: String,
     enum: Object.values(EFaction),
