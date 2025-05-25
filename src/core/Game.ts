@@ -133,6 +133,7 @@ export class Game {
       JSON.stringify({
         type: EGameMessageType.UPDATE,
         data: {
+          leader: this.players[nickname].leader,
           desk: this.players[nickname].deck,
           playingCards: this.players[nickname].playingCards,
           discards: this.players[nickname].discards,

@@ -8,8 +8,17 @@ import { ICard, IGamesMessageRequest } from "@/types/entities";
 export class Manager {
   public utils: Utils = new Utils();
 
-  private setPlayerCards(game: Game, nickname: string, cards: ICard[]) {
+  private setPlayerCards(
+    game: Game,
+    nickname: string,
+    cards: ICard[],
+    leader: ICard
+  ) {
     game.players[nickname].deck = cards;
+    game.players[nickname].leader = leader;
+    game.players[game.players[nickname].enemy.nickname].enemy.leader = leader;
+    game.players[game.players[nickname].enemy.nickname].enemy.cardsCount = 10;
+
     const playingCards = this.utils.getRandomElements(cards, 10);
     game.players[nickname].playingCards = playingCards;
     const playerKeys = Object.keys(game.players);
@@ -88,7 +97,12 @@ export class Manager {
     this.playersCardsCheck(game, nickname);
     switch (event.type) {
       case EGameResponseMessageType.UPDATE_CARDS: {
-        this.setPlayerCards(game, nickname, event.data.cards);
+        this.setPlayerCards(
+          game,
+          nickname,
+          event.data.cards,
+          event.data.leader
+        );
         break;
       }
       case EGameResponseMessageType.APPLY_CARD: {

@@ -6,11 +6,13 @@ import { WebSocket } from "ws";
 export interface IPlayer {
   nickname: string;
   avatar: string | null;
+  leader: ICard;
   pass: boolean;
   enemy: {
     nickname: string;
     avatar: string | null;
     cardsCount: number;
+    leader: ICard;
     pass: boolean;
   };
   deck: ICard[];
