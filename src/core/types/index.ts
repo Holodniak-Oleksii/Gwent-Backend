@@ -14,6 +14,8 @@ export interface IPlayer {
     cardsCount: number;
     leader: ICard;
     pass: boolean;
+    deckLength: number;
+    discards: ICard[];
   };
   deck: ICard[];
   playingCards: ICard[];

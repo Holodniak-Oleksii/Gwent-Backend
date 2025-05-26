@@ -14,12 +14,16 @@ export class Manager {
     cards: ICard[],
     leader: ICard
   ) {
-    game.players[nickname].deck = cards;
     game.players[nickname].leader = leader;
     game.players[game.players[nickname].enemy.nickname].enemy.leader = leader;
     game.players[game.players[nickname].enemy.nickname].enemy.cardsCount = 10;
+    game.players[game.players[nickname].enemy.nickname].enemy.discards = [];
 
     const playingCards = this.utils.getRandomElements(cards, 10);
+    const deck = cards.filter((c) => !playingCards.includes(c));
+    game.players[nickname].deck = deck;
+    game.players[game.players[nickname].enemy.nickname].enemy.deckLength =
+      deck.length;
     game.players[nickname].playingCards = playingCards;
     const playerKeys = Object.keys(game.players);
 

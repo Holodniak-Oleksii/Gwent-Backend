@@ -189,6 +189,8 @@ export class Ability {
         ability: card.card.ability,
         row: card.card.forces,
         type: card.card.type,
+        fractionId: card.card.fractionId,
+        image: card.card.image,
         applyTo:
           card.card.type === EType.WEATHER
             ? Object.keys(this.game.players)

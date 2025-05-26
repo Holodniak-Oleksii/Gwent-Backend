@@ -69,6 +69,8 @@ export interface IEffect {
   row: EForces;
   ability: ECardAbilities;
   type: EType;
+  fractionId: EFaction;
+  image: string | null;
   applyTo: string[];
 }
 

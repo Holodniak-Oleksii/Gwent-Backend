@@ -134,7 +134,7 @@ export class Game {
         type: EGameMessageType.UPDATE,
         data: {
           leader: this.players[nickname].leader,
-          desk: this.players[nickname].deck,
+          deck: this.players[nickname].deck,
           playingCards: this.players[nickname].playingCards,
           discards: this.players[nickname].discards,
           boardCards: this.boardCards,
@@ -153,7 +153,7 @@ export class Game {
         JSON.stringify({
           type: EGameMessageType.UPDATE,
           data: {
-            desk: this.players[c].deck,
+            deck: this.players[c].deck,
             playingCards: this.players[c].playingCards,
             discards: this.players[c].discards,
             boardCards: this.boardCards,
@@ -266,6 +266,15 @@ export class Game {
     } else {
       this.boardCards.forEach((c) => {
         this.players[c.ownerNickname]?.discards.push(c.card);
+        this.players[
+          this.players[c.ownerNickname].enemy.nickname
+        ].enemy.discards.push(c.card);
+        this.players[c.ownerNickname].deck.filter(
+          (dc) => dc._id !== c.card._id
+        );
+        this.players[
+          this.players[c.ownerNickname].enemy.nickname
+        ].enemy.deckLength = this.players[c.ownerNickname].deck.length;
       });
       this.boardCards = [];
       this.update();
