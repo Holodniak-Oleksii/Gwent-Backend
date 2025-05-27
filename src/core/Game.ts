@@ -15,10 +15,10 @@ export class Game {
   public rounds: IRound[] = [];
   public effects: IEffect[] = [];
   public _id: string;
+  public showSunRays: boolean = false;
   public order: string = "";
   public winner: string | null = null;
   private manager = new Manager();
-
   constructor(
     _id: string,
     rate: number,
@@ -142,9 +142,11 @@ export class Game {
           enemy: this.players[nickname].enemy,
           rounds: this.rounds,
           effects: this.effects,
+          showSunRays: this.showSunRays,
         },
       })
     );
+    this.showSunRays = false;
   }
 
   public sendUpdateAll() {
@@ -161,10 +163,12 @@ export class Game {
             enemy: this.players[c].enemy,
             rounds: this.rounds,
             effects: this.effects,
+            showSunRays: this.showSunRays,
           },
         })
       );
     });
+    this.showSunRays = false;
   }
 
   private async resolveGame(winner: string) {

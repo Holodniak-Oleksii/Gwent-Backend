@@ -82,6 +82,7 @@ export class Ability {
       if (this.effects.length) {
         this.cards = this.returnCardsValues(cards);
         this.effects = this.effects.filter((e) => e.type !== EType.WEATHER);
+        this.game.showSunRays = true;
         this.apply();
       }
     }
