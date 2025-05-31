@@ -1,11 +1,13 @@
 import cloudinary from "@/config/cloudinary";
 import { generateAccessToken, generateRefreshToken } from "@/config/jwt";
 import CardEntity from "@/entities/Card.entity";
+import RefillEntity from "@/entities/Refill.entity";
 import UserEntity from "@/entities/User.entity";
 import { EResponseMessage } from "@/types/enums";
 import { getCloudinaryPublicId } from "@/utils";
 import bcrypt from "bcryptjs";
 import { NextFunction, Request, Response } from "express";
+import { v4 as uuidv4 } from "uuid";
 
 export const register = async (
   req: Request,
@@ -283,6 +285,38 @@ export const uploadAvatar = async (
     );
 
     uploadStream.end(req.file.buffer);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const generateRefillCode = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.user?._id) {
+      res.status(401).json({ message: EResponseMessage.INVALID_CREDENTIALS });
+      return;
+    }
+
+    const user = await UserEntity.findById(req.user._id);
+    if (!user) {
+      res.status(404).json({ message: EResponseMessage.USER_NOT_FOUND });
+      return;
+    }
+
+    const code = uuidv4().replace(/-/g, "").slice(0, 8);
+    await RefillEntity.create({
+      userId: user._id,
+      code,
+    });
+
+    res.status(200).json({
+      message: EResponseMessage.BALANCE_TOPPED_UP,
+      code,
+    });
   } catch (error) {
     next(error);
   }

@@ -1,3 +1,4 @@
+import { checkRefillTransactions } from "@/monetization";
 import { EOperationNotificationType } from "@/types/enums";
 import { IncomingMessage } from "http";
 import WebSocket, { Server } from "ws";
@@ -33,6 +34,13 @@ export default class WebSocketNotificationManager {
         ws.close();
         return;
       }
+      const interval = setInterval(
+        async () =>
+          await checkRefillTransactions((balance: number) =>
+            this.utils.sendRefillMessage(nickname, balance)
+          ),
+        60_000
+      );
 
       console.log(`User connected: ${nickname}`);
 
@@ -42,7 +50,10 @@ export default class WebSocketNotificationManager {
       ws.on("message", (message: string) =>
         this.handleMessage(nickname, message)
       );
-      ws.on("close", () => this.utils.deleteClient(nickname));
+      ws.on("close", () => {
+        clearInterval(interval);
+        this.utils.deleteClient(nickname);
+      });
     });
   }
 

@@ -50,6 +50,8 @@ export enum EType {
 
 export enum EResponseMessage {
   IS_REQUIRED = "requiredFields",
+  BALANCE_TOPPED_UP = "balanceToppedUp",
+  INVALID_AMOUNT = "invalidAmount",
   PASSWORD_LENGTH = "passwordLength",
   EMAIL_TAKEN = "emailTaken",
   NICKNAME_TAKEN = "nicknameTaken",
@@ -75,6 +77,7 @@ export enum EOperationNotificationType {
   NEW_DUEL = "new_duel",
   RESPOND_DUEL = "respond_duel",
   STORED_DUELS = "stored_duels",
+  REFILL_BALANCE = "refill_balance",
 }
 
 export enum EStatusNotification {
