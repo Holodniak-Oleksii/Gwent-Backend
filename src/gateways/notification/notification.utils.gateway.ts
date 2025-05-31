@@ -24,6 +24,17 @@ export default class WebSocketNotificationUtils {
     );
   }
 
+  public async sendRefillMessage(nickname: string, balance: number) {
+    const duelData = JSON.stringify({
+      type: EOperationNotificationType.REFILL_BALANCE,
+      data: { balance },
+    });
+
+    if (this.clients[nickname]) {
+      this.clients[nickname].send(duelData);
+    }
+  }
+
   public async createDuel(nickname: string, receiver: string, rate: number) {
     const duel = await NotificationEntity.create({
       sender: nickname,

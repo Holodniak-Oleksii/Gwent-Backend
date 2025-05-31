@@ -85,3 +85,11 @@ export interface IDuel {
   winner: string | null;
   effects: IEffect[];
 }
+
+export interface IRefill {
+  userId: string;
+  amount: number;
+  code: string;
+  fulfilled: boolean;
+  createdAt: Date;
+}

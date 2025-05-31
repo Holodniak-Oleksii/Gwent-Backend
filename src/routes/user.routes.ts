@@ -1,4 +1,5 @@
 import {
+  generateRefillCode,
   getAllPlayers,
   getProfile,
   getUserByNickname,
@@ -17,6 +18,7 @@ router.post("/login", login);
 router.get("/info/:nickname", authMiddleware, getUserByNickname);
 router.get("/all", authMiddleware, getAllPlayers);
 router.get("/profile", authMiddleware, getProfile);
+router.post("/generate-refill-code", authMiddleware, generateRefillCode);
 router.post("/avatar", authMiddleware, uploadMiddleware, uploadAvatar);
 
 export default router;

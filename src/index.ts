@@ -36,7 +36,7 @@ app.use("/api/cards", cardRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/refresh", refreshRoutes);
 
-app.get("/", (req, res) => {
+app.get("/", (_, res) => {
   res.status(200).json({ msg: "Server is up and running" });
 });
 
