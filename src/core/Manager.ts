@@ -41,7 +41,9 @@ export class Manager {
     }
   }
 
-  private applyCards(game: Game, nickname: string, card: ICard) {
+  private applyCards(game: Game, nickname: string, data: any) {
+    const { card, ...additional } = data;
+
     const playingCards = game.players[nickname].playingCards.filter(
       (c) => c._id !== card._id
     );
@@ -58,7 +60,7 @@ export class Manager {
     game.boardCards.push(boardCard);
 
     const ability = new Ability(game, game.players);
-    ability.addEffect(boardCard);
+    ability.addEffect(boardCard, additional);
     const { cards, effects, players } = ability.apply();
     game.boardCards = cards;
     game.effects = effects;
@@ -110,7 +112,7 @@ export class Manager {
         break;
       }
       case EGameResponseMessageType.APPLY_CARD: {
-        await this.applyCards(game, nickname, event.data.card);
+        this.applyCards(game, nickname, event.data);
         break;
       }
       case EGameResponseMessageType.PLAYER_PASS: {

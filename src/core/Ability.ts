@@ -1,6 +1,6 @@
 import { Game } from "@/core/Game";
 import { IBoardCard, IPlayer } from "@/core/types";
-import { IEffect } from "@/types/entities";
+import { ICard, IEffect } from "@/types/entities";
 import { ECardAbilities, EForces, EType } from "@/types/enums";
 import { ESpecialFiled } from "./types/enums";
 const {
@@ -133,6 +133,8 @@ export class Ability {
     });
   }
 
+  // ---------- UNITS ---------
+
   private spy(card: IBoardCard) {
     this.cards = this.cards.map((c) => {
       const spyAble = c.card._id === card.card._id && !c[IS_SPY];
@@ -150,6 +152,20 @@ export class Ability {
       this.players[card.ownerNickname].promisedCards + 1;
   }
 
+  private medic(card: IBoardCard, resurrect: ICard) {
+    this.players[card.ownerNickname].discards = this.players[
+      card.ownerNickname
+    ].discards.filter((c) => c._id !== resurrect._id);
+
+    const boardCard: IBoardCard = {
+      card: resurrect,
+      ownerNickname: card.ownerNickname,
+      position: resurrect.forces,
+    };
+
+    this.cards.push(boardCard);
+  }
+
   // ---------- APPLIES ---------
 
   private applySpecialAbility(
@@ -165,9 +181,21 @@ export class Ability {
     }
   }
 
-  private applyUnitAbility(card: IBoardCard) {
-    if (card.card.ability === SPY) {
-      this.spy(card);
+  private applyUnitAbility(card: IBoardCard, additional: any) {
+    switch (card.card.ability) {
+      case SPY: {
+        this.spy(card);
+        break;
+      }
+      case MEDIC: {
+        if (!!additional?.resurrect) {
+          this.medic(card, additional.resurrect);
+        }
+        break;
+      }
+      default: {
+        break;
+      }
     }
   }
 
@@ -184,7 +212,7 @@ export class Ability {
     return { cards: this.cards, effects: this.effects, players: this.players };
   }
 
-  public addEffect(card: IBoardCard) {
+  public addEffect(card: IBoardCard, additional: any) {
     if (card.card.ability && this.allowedEffects.includes(card.card.ability)) {
       this.effects.push({
         ability: card.card.ability,
@@ -198,7 +226,7 @@ export class Ability {
             : [card.ownerNickname],
       });
     } else {
-      this.applyUnitAbility(card);
+      this.applyUnitAbility(card, additional);
     }
   }
 }
