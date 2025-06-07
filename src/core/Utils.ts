@@ -3,7 +3,7 @@ import { IPlayer } from "@/core/types";
 export class Utils {
   public getRandomElements<T>(array: T[], count: number): T[] {
     if (count > array.length) {
-      throw new Error("Count cannot be greater than the array length.");
+      return [];
     }
 
     const result: T[] = [];

@@ -12,6 +12,8 @@ const {
   IMPENETRABLE_FOG,
   SPY,
   MEDIC,
+  MUSTER,
+  HERO,
 } = ECardAbilities;
 const { SAVED_POWER, IS_WEATHER, IS_MOTIVATE, IS_SPY } = ESpecialFiled;
 export class Ability {
@@ -42,8 +44,8 @@ export class Ability {
       const updateAble =
         c.card.forces === row &&
         c.card.type !== EType.WEATHER &&
-        c.card.power !== 0 &&
-        !c[IS_WEATHER];
+        c.card.ability !== HERO;
+      c.card.power !== 0 && !c[IS_WEATHER];
 
       return {
         ...c,
@@ -90,22 +92,28 @@ export class Ability {
 
   // ---------- SPECIAL ---------
 
-  private killBigPower() {
+  private killBigPower(card?: ICard) {
     const cards = this.cards;
-    const maxPower = cards.reduce(
+    const units = cards.filter(
+      (c) => c.card.ability !== HERO && c.card._id !== card?._id
+    );
+    const maxPower = units.reduce(
       (max, card) => Math.max(max, card.card.power),
       -Infinity
     );
 
-    const toDiscard = cards.filter((card) => card.card.power === maxPower);
+    const toDiscard = cards.filter(
+      (c) =>
+        c.card.power === maxPower &&
+        c.card.ability !== HERO &&
+        c.card._id !== card?._id
+    );
 
     toDiscard.forEach((card) => {
       this.players[card.ownerNickname]?.discards.push(card.card);
     });
 
-    this.cards = cards.filter(
-      (card) => card.card.power !== maxPower && card.card.ability !== SCORCH
-    );
+    this.cards = cards.filter((c) => !toDiscard.includes(c));
 
     this.effects = this.effects.filter((effect) => effect.ability !== SCORCH);
   }
@@ -166,6 +174,41 @@ export class Ability {
     this.cards.push(boardCard);
   }
 
+  private muster(card: IBoardCard) {
+    const ability = card.card.ability as ECardAbilities;
+    const owner = card.ownerNickname;
+    const name = card.card.image;
+
+    const match = (c: ICard) => this.nameMatch(c, ability, name);
+
+    const [playCardsMatch, playCardsRest] = this.partition(
+      this.players[owner].playingCards,
+      match
+    );
+    const [discardsMatch, discardsRest] = this.partition(
+      this.players[owner].discards,
+      match
+    );
+    const [deckMatch, deckRest] = this.partition(
+      this.players[owner].deck,
+      match
+    );
+
+    [...playCardsMatch, ...discardsMatch, ...deckMatch].forEach((c) => {
+      const boardCard: IBoardCard = {
+        card: c,
+        ownerNickname: owner,
+        position: c.forces,
+      };
+
+      this.cards.push(boardCard);
+    });
+
+    this.players[owner].playingCards = playCardsRest;
+    this.players[owner].discards = discardsRest;
+    this.players[owner].deck = deckRest;
+  }
+
   // ---------- APPLIES ---------
 
   private applySpecialAbility(
@@ -193,6 +236,14 @@ export class Ability {
         }
         break;
       }
+      case MUSTER: {
+        this.muster(card);
+        break;
+      }
+      case SCORCH: {
+        this.killBigPower(card.card);
+        break;
+      }
       default: {
         break;
       }
@@ -213,7 +264,11 @@ export class Ability {
   }
 
   public addEffect(card: IBoardCard, additional: any) {
-    if (card.card.ability && this.allowedEffects.includes(card.card.ability)) {
+    if (
+      card.card.ability &&
+      this.allowedEffects.includes(card.card.ability) &&
+      card.card.type !== EType.UNIT
+    ) {
       this.effects.push({
         ability: card.card.ability,
         row: card.card.forces,
@@ -229,4 +284,21 @@ export class Ability {
       this.applyUnitAbility(card, additional);
     }
   }
+  // ---------- UTILS ---------
+  private partition<T>(
+    array: T[],
+    predicate: (item: T) => boolean
+  ): [T[], T[]] {
+    const matched: T[] = [];
+    const rest: T[] = [];
+
+    for (const item of array) {
+      (predicate(item) ? matched : rest).push(item);
+    }
+
+    return [matched, rest];
+  }
+
+  private nameMatch = (c: ICard, ability: ECardAbilities, name: string) =>
+    c.ability === ability && c.image.includes(name.slice(0, -2));
 }

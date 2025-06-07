@@ -36,7 +36,7 @@ export interface ICard {
   _id: string;
   fractionId: EFaction;
   ability: ECardAbilities | null;
-  image: string | null;
+  image: string;
   power: number;
   price: number;
   forces: EForces;
