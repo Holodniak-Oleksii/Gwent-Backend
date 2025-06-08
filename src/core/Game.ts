@@ -3,8 +3,10 @@ import { Manager } from "@/core/Manager";
 import { IBoardCard, IConnection, IPlayer } from "@/core/types";
 import { EGameErrors, EGameMessageType } from "@/core/types/enums";
 import DuelEntity from "@/entities/Duel.entity";
+import NotificationEntity from "@/entities/Notification.entity";
 import UserEntity from "@/entities/User.entity";
 import { IEffect, IGamesMessageRequest, IRound } from "@/types/entities";
+import { EStatusNotification } from "@/types/enums";
 import { WebSocket } from "ws";
 
 export class Game {
@@ -215,6 +217,10 @@ export class Game {
           losses: (ul.losses || 0) + 1,
         }
       );
+
+    await NotificationEntity.findByIdAndUpdate(this._id, {
+      status: EStatusNotification.COMPLETED,
+    });
   }
 
   public endRound() {

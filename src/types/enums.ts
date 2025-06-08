@@ -84,4 +84,5 @@ export enum EStatusNotification {
   PENDING = "pending",
   ACCEPTED = "accepted",
   DECLINED = "declined",
+  COMPLETED = "completed",
 }
