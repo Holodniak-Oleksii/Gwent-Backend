@@ -17,6 +17,7 @@ const {
   MARDROEME,
   DECOY,
   MORALE_BOOST,
+  TIGHT_BOND,
 } = ECardAbilities;
 const { SAVED_POWER, IS_WEATHER, IS_MOTIVATE, IS_SPY, IS_CURSED } =
   ESpecialFiled;
@@ -133,6 +134,8 @@ export class Ability {
           card.ownerNickname === effect.applyTo[0]
         )
     );
+
+    // this.tightBondReverse();
   }
 
   private mardroeme(owner: string, targetCard?: ICard) {
@@ -184,6 +187,8 @@ export class Ability {
             c.card._id === effect._id && c.ownerNickname === effect.applyTo[0]
         )
     );
+
+    // this.tightBondReverse();
   }
 
   private motivateForces(row: EForces, owners: string[]) {
@@ -277,6 +282,69 @@ export class Ability {
     this.players[owner].deck = deckRest;
   }
 
+  private tightBond(card: IBoardCard) {
+    const name = card.card.image;
+    const row = card.position;
+    const owner = card.ownerNickname;
+
+    const sameUnitRowCards = this.cards.filter(
+      (c) => c.ownerNickname === owner && c.position === row
+    );
+
+    const sameUnitCards = sameUnitRowCards.filter((c) =>
+      this.nameMatch(c.card, ECardAbilities.TIGHT_BOND, name)
+    );
+
+    if (sameUnitCards.length < 2) return;
+
+    const toUpdate: IBoardCard[] = [];
+
+    sameUnitCards.forEach((e, i) => {
+      const currentIndex = sameUnitRowCards.indexOf(e);
+      const prev = sameUnitRowCards[currentIndex - 1];
+      const next = sameUnitRowCards[currentIndex + 1];
+
+      if (
+        (prev !== undefined && sameUnitCards.includes(prev)) ||
+        (next !== undefined && sameUnitCards.includes(next))
+      ) {
+        toUpdate.push(e);
+      }
+    });
+
+    const maxPower = Math.max(...toUpdate.map((e) => e.card.power));
+
+    toUpdate.forEach((e) => {
+      const boardIndex = this.cards.indexOf(e);
+      const power = maxPower * 2;
+      this.cards[boardIndex].card.power = power;
+      this.cards[boardIndex][SAVED_POWER] = power;
+    });
+  }
+
+  private moraleBoost(card: IBoardCard) {
+    const row = card.position;
+    const owner = card.ownerNickname;
+
+    this.cards = this.cards.map((e) => {
+      if (
+        e.ownerNickname === owner &&
+        e.position === row &&
+        e.card._id !== card.card._id
+      ) {
+        return {
+          ...e,
+          [SAVED_POWER]: e.card.power + 1,
+          card: {
+            ...e.card,
+            power: e.card.power + 1,
+          },
+        };
+      }
+      return e;
+    });
+  }
+
   // ---------- APPLIES ---------
 
   private applySpecialAbility(effect: IEffect) {
@@ -332,6 +400,14 @@ export class Ability {
       }
       case HORN: {
         this.addPermanentCard(card, additional);
+        break;
+      }
+      case TIGHT_BOND: {
+        this.tightBond(card);
+        break;
+      }
+      case MORALE_BOOST: {
+        this.moraleBoost(card);
         break;
       }
       default: {
