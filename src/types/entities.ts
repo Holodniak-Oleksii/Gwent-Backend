@@ -66,12 +66,14 @@ export interface IRound {
 }
 
 export interface IEffect {
+  _id: string;
   row: EForces;
   ability: ECardAbilities;
   type: EType;
   fractionId: EFaction;
-  image: string | null;
+  image: string;
   applyTo: string[];
+  targetCard?: ICard;
 }
 
 export interface IDuel {

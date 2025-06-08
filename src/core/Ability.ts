@@ -14,8 +14,12 @@ const {
   MEDIC,
   MUSTER,
   HERO,
+  MARDROEME,
+  DECOY,
+  MORALE_BOOST,
 } = ECardAbilities;
-const { SAVED_POWER, IS_WEATHER, IS_MOTIVATE, IS_SPY } = ESpecialFiled;
+const { SAVED_POWER, IS_WEATHER, IS_MOTIVATE, IS_SPY, IS_CURSED } =
+  ESpecialFiled;
 export class Ability {
   private game: Game = {} as Game;
   private players: Record<string, IPlayer> = {} as Record<string, IPlayer>;
@@ -28,6 +32,7 @@ export class Ability {
     SCORCH,
     TORRENTIAL_RAIN,
     IMPENETRABLE_FOG,
+    MARDROEME,
   ];
 
   constructor(game: Game, players: Record<string, IPlayer>) {
@@ -40,27 +45,34 @@ export class Ability {
   // ---------- WEATHER ---------
 
   private devalueCard(cards: IBoardCard[], row: EForces): IBoardCard[] {
-    return cards.map((c) => {
-      const updateAble =
-        c.card.forces === row &&
-        c.card.type !== EType.WEATHER &&
-        c.card.ability !== HERO;
-      c.card.power !== 0 && !c[IS_WEATHER];
+    return cards.map((card) => this.processCard(card, row));
+  }
 
-      return {
-        ...c,
-        ...(updateAble
-          ? {
-              [SAVED_POWER]: c[SAVED_POWER] || c.card.power,
-              [IS_WEATHER]: true,
-            }
-          : {}),
-        card: {
-          ...c.card,
-          power: updateAble ? (c[IS_MOTIVATE] ? 2 : 1) : c.card.power,
-        },
-      };
-    });
+  private processCard(card: IBoardCard, row: EForces): IBoardCard {
+    const isWeatherAffected =
+      card.card.forces === row &&
+      card.card.type !== EType.WEATHER &&
+      card.card.ability !== HERO &&
+      card.card.power !== 0 &&
+      !card[IS_WEATHER];
+
+    return {
+      ...card,
+      ...(isWeatherAffected
+        ? {
+            [SAVED_POWER]: card[SAVED_POWER] || card.card.power,
+            [IS_WEATHER]: true,
+          }
+        : {}),
+      card: {
+        ...card.card,
+        power: isWeatherAffected
+          ? card[IS_MOTIVATE]
+            ? 2
+            : 1
+          : card.card.power,
+      },
+    };
   }
 
   private returnCardsValues(cards: IBoardCard[]): IBoardCard[] {
@@ -92,6 +104,55 @@ export class Ability {
 
   // ---------- SPECIAL ---------
 
+  private decoy(card: IBoardCard, targetCard: ICard) {
+    this.cards = this.cards.map((c) => {
+      if (c.card._id === targetCard?._id) {
+        const updatedTargetCard = {
+          ...c.card,
+          power: c[SAVED_POWER] || c.card.power,
+        };
+        this.players[card.ownerNickname].playingCards.push(updatedTargetCard);
+
+        return {
+          ownerNickname: card.ownerNickname,
+          position: targetCard.forces,
+          card: {
+            ...card.card,
+            forces: targetCard.forces,
+            type: EType.UNIT,
+          },
+        };
+      }
+      return c;
+    });
+
+    this.effects = this.effects.filter(
+      (effect) =>
+        !(
+          targetCard._id === effect._id &&
+          card.ownerNickname === effect.applyTo[0]
+        )
+    );
+  }
+
+  private mardroeme(owner: string, targetCard?: ICard) {
+    const enemy = this.players[owner].enemy.nickname;
+    this.cards = this.cards.map((c) => {
+      if (c.card._id === targetCard?._id && c.ownerNickname === enemy) {
+        return {
+          ...c,
+          [IS_CURSED]: true,
+          [SAVED_POWER]: c[SAVED_POWER] || c.card.power,
+          card: {
+            ...c.card,
+            power: c[IS_MOTIVATE] ? 2 : 1,
+          },
+        };
+      }
+      return c;
+    });
+  }
+
   private killBigPower(card?: ICard) {
     const cards = this.cards;
     const units = cards.filter(
@@ -115,7 +176,14 @@ export class Ability {
 
     this.cards = cards.filter((c) => !toDiscard.includes(c));
 
-    this.effects = this.effects.filter((effect) => effect.ability !== SCORCH);
+    this.effects = this.effects.filter(
+      (effect) =>
+        effect.ability !== SCORCH &&
+        !toDiscard.some(
+          (c) =>
+            c.card._id === effect._id && c.ownerNickname === effect.applyTo[0]
+        )
+    );
   }
 
   private motivateForces(row: EForces, owners: string[]) {
@@ -211,20 +279,30 @@ export class Ability {
 
   // ---------- APPLIES ---------
 
-  private applySpecialAbility(
-    row: EForces,
-    ability: ECardAbilities,
-    owners: string[]
-  ) {
+  private applySpecialAbility(effect: IEffect) {
+    const { ability, applyTo, targetCard, row } = effect;
+
     if (ability === SCORCH) {
       this.killBigPower();
     }
+    if (ability === MARDROEME) {
+      this.mardroeme(applyTo[0], targetCard);
+    }
     if (ability === HORN) {
-      this.motivateForces(row, owners);
+      this.motivateForces(row, applyTo);
     }
   }
 
-  private applyUnitAbility(card: IBoardCard, additional: any) {
+  private applyUnitPermanentEffect(effect: IEffect) {
+    switch (effect.ability) {
+      case HORN: {
+        this.motivateForces(effect.row, effect.applyTo);
+        break;
+      }
+    }
+  }
+
+  private applyUnitAbility(card: IBoardCard, additional?: any) {
     switch (card.card.ability) {
       case SPY: {
         this.spy(card);
@@ -244,6 +322,18 @@ export class Ability {
         this.killBigPower(card.card);
         break;
       }
+      case MARDROEME: {
+        this.mardroeme(card.ownerNickname, additional.targetCard);
+        break;
+      }
+      case DECOY: {
+        this.decoy(card, additional.targetCard);
+        break;
+      }
+      case HORN: {
+        this.addPermanentCard(card, additional);
+        break;
+      }
       default: {
         break;
       }
@@ -256,11 +346,30 @@ export class Ability {
         this.applyWeather(e.row, e.ability);
       }
       if (e.type === EType.SPECIAL) {
-        this.applySpecialAbility(e.row, e.ability, e.applyTo);
+        this.applySpecialAbility(e);
+      }
+      if (e.type === EType.UNIT) {
+        this.applyUnitPermanentEffect(e);
       }
     });
 
     return { cards: this.cards, effects: this.effects, players: this.players };
+  }
+
+  private addPermanentCard(card: IBoardCard, additional: any) {
+    this.effects.push({
+      _id: card.card._id,
+      ability: card.card.ability!,
+      row: card.card.forces,
+      type: card.card.type,
+      fractionId: card.card.fractionId,
+      image: card.card.image,
+      targetCard: additional?.targetCard,
+      applyTo:
+        card.card.type === EType.WEATHER
+          ? Object.keys(this.game.players)
+          : [card.ownerNickname],
+    });
   }
 
   public addEffect(card: IBoardCard, additional: any) {
@@ -269,17 +378,7 @@ export class Ability {
       this.allowedEffects.includes(card.card.ability) &&
       card.card.type !== EType.UNIT
     ) {
-      this.effects.push({
-        ability: card.card.ability,
-        row: card.card.forces,
-        type: card.card.type,
-        fractionId: card.card.fractionId,
-        image: card.card.image,
-        applyTo:
-          card.card.type === EType.WEATHER
-            ? Object.keys(this.game.players)
-            : [card.ownerNickname],
-      });
+      this.addPermanentCard(card, additional);
     } else {
       this.applyUnitAbility(card, additional);
     }

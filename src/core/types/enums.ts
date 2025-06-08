@@ -22,6 +22,7 @@ export enum EGameMessageType {
 export enum ESpecialFiled {
   SAVED_POWER = "savedPower",
   IS_WEATHER = "isWeather",
+  IS_CURSED = "isCursed",
   IS_MOTIVATE = "isMotivate",
   IS_SPY = "isSpy",
 }
