@@ -22,18 +22,44 @@ export const getCards = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const cards = await CardEntity.find();
+    const {
+      forces,
+      fractions,
+      abilities,
+      types,
+      name,
+      page = "1",
+      size = "10",
+    } = req.query;
 
-    // await Promise.all(
-    //   cards.map((c) =>
-    //     CardEntity.findByIdAndUpdate(c._id, {
-    //       ...c.toObject(),
-    //       price: 100,
-    //     })
-    //   )
-    // );
+    const pageNum = parseInt(page as string, 10);
+    const sizeNum = parseInt(size as string, 10);
 
-    res.status(200).json({ cards });
+    const filters: any = {};
+
+    if (forces)
+      filters.forces = { $in: Array.isArray(forces) ? forces : [forces] };
+    if (fractions)
+      filters.fractionId = {
+        $in: Array.isArray(fractions) ? fractions : [fractions],
+      };
+    if (abilities)
+      filters.ability = {
+        $in: Array.isArray(abilities) ? abilities : [abilities],
+      };
+    if (types) filters.type = { $in: Array.isArray(types) ? types : [types] };
+
+    if (name && typeof name === "string") {
+      filters.image = { $regex: name, $options: "i" };
+    }
+
+    const total = await CardEntity.countDocuments(filters);
+
+    const cards = await CardEntity.find(filters)
+      .skip((pageNum - 1) * sizeNum)
+      .limit(sizeNum);
+
+    res.status(200).json({ cards, total });
   } catch (error) {
     next(error);
   }

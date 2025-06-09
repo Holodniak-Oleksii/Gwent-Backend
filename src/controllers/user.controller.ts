@@ -207,18 +207,46 @@ export const getAllPlayers = async (
       return;
     }
 
-    const { nickname } = req.user;
+    const currentUserNickname = req.user.nickname;
 
-    const users = await UserEntity.find({ nickname: { $ne: nickname } });
+    const { name = "", rating, page = "1", size = "10" } = req.query;
 
-    const formattedUsers = users.map((user) => ({
+    const pageNum = parseInt(page as string, 10);
+    const sizeNum = parseInt(size as string, 10);
+
+    const filters: any = {
+      nickname: { $ne: currentUserNickname },
+    };
+
+    if (typeof name === "string" && name.trim() !== "") {
+      filters.nickname = {
+        ...filters.nickname,
+        $regex: name,
+        $options: "i",
+      };
+    }
+
+    if (rating !== undefined && !isNaN(Number(rating))) {
+      filters.rating = { $gte: Number(rating) };
+    }
+
+    const total = await UserEntity.countDocuments(filters);
+
+    const users = await UserEntity.find(filters)
+      .skip((pageNum - 1) * sizeNum)
+      .limit(sizeNum);
+
+    const players = users.map((user) => ({
       _id: user._id,
       nickname: user.nickname,
       avatar: user.avatar,
       rating: user.rating,
     }));
 
-    res.status(200).json({ players: formattedUsers });
+    res.status(200).json({
+      players,
+      total,
+    });
   } catch (error) {
     next(error);
   }
