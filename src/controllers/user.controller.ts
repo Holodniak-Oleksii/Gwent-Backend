@@ -95,7 +95,7 @@ export const login = async (
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      res.status(400).json({ message: EResponseMessage.PASSWORD_LENGTH });
+      res.status(400).json({ message: EResponseMessage.PASS_INCORRECT });
       return;
     }
 
